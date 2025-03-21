@@ -22,16 +22,6 @@ a:hover {
   color: #535bf2;
 }
 
-body {
-  background-image: url('/public/App\ Background.jpg');
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  height: 100vh;
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-}
-
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
@@ -67,4 +57,13 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+body {
+  background-image: url('/public/App\ Background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 100vh;
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
 }
