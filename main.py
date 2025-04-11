@@ -1,15 +1,22 @@
-from fastapi import FastAPI, Depends
+﻿from fastapi import FastAPI, Depends, Request
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from datetime import datetime
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates  # Just used to fill in values
 
 from database.models import CurrentSensorData
 from database.database import get_db
 
 app = FastAPI()
 
-# Schema for incoming sensor data
+# Mount static files so the image can be loaded
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Template engine (just to load .html, even if it’s already made)
+templates = Jinja2Templates(directory="templates")
+
 class SensorData(BaseModel):
     esp_id: str
     temperature: float
@@ -18,7 +25,6 @@ class SensorData(BaseModel):
     soil_moisture: int
     distance_mm: int
 
-# POST endpoint to receive data from ESP32
 @app.post("/sensor/update")
 def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     entry = CurrentSensorData(
@@ -34,53 +40,17 @@ def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success"}
 
-# GET endpoint to display sensor data as HTML
 @app.get("/", response_class=HTMLResponse)
-def read_sensor_data(db: Session = Depends(get_db)):
-    rows = db.query(CurrentSensorData).order_by(CurrentSensorData.timestamp.desc()).all()
+def dashboard(request: Request, db: Session = Depends(get_db)):
+    latest = db.query(CurrentSensorData).order_by(CurrentSensorData.timestamp.desc()).first()
+    if not latest:
+        return HTMLResponse("<h2>No sensor data available.</h2>")
 
-    html = """
-    <html>
-        <head>
-            <title>Plant Sensor Data</title>
-            <style>
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid #ddd; padding: 8px; }
-                th { background-color: #f2f2f2; }
-            </style>
-        </head>
-        <body>
-            <h1>Current Sensor Data</h1>
-            <table>
-                <tr>
-                    <th>ID</th>
-                    <th>ESP ID</th>
-                    <th>Timestamp</th>
-                    <th>Temperature (&deg;C)</th>
-                    <th>Humidity (%)</th>
-                    <th>Light (lux)</th>
-                    <th>Distance (mm)</th>
-                    <th>Soil Moisture</th>
-                </tr>
-    """
-
-    for row in rows:
-        html += f"""
-                <tr>
-                    <td>{row.id}</td>
-                    <td>{row.esp_id}</td>
-                    <td>{row.timestamp}</td>
-                    <td>{row.temperature}</td>
-                    <td>{row.humidity}</td>
-                    <td>{row.light_lux}</td>
-                    <td>{row.distance_mm}</td>
-                    <td>{row.soil_moisture}</td>
-                </tr>
-        """
-
-    html += """
-            </table>
-        </body>
-    </html>
-    """
-    return HTMLResponse(content=html)
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "temperature": f"{latest.temperature:.1f}",
+        "humidity": f"{latest.humidity:.1f}",
+        "light_lux": f"{latest.light_lux:.0f}",
+        "soil_moisture": latest.soil_moisture,
+        "distance_mm": latest.distance_mm,
+    })

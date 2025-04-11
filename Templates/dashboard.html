@@ -1,0 +1,79 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Plant Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f0f8f5;
+            padding: 40px;
+        }
+
+        .circle-container {
+            position: relative;
+            width: 400px;
+            height: 400px;
+            margin: 0 auto;
+        }
+
+            .circle-container img {
+                width: 200px;
+                height: 200px;
+                border-radius: 50%;
+                object-fit: cover;
+                position: absolute;
+                top: 100px;
+                left: 100px;
+            }
+
+        .stat {
+            position: absolute;
+            width: 100px;
+            text-align: center;
+            font-weight: bold;
+            background: #ffffffcc;
+            border-radius: 8px;
+            padding: 5px;
+        }
+
+        .temp {
+            top: 0;
+            left: 150px;
+        }
+
+        .humid {
+            top: 150px;
+            right: 0;
+        }
+
+        .light {
+            bottom: 0;
+            left: 150px;
+        }
+
+        .soil {
+            top: 150px;
+            left: 0;
+        }
+
+        .dist {
+            top: 180px;
+            left: 150px;
+            font-size: 12px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌱 Live Plant Stats</h1>
+    <div class="circle-container">
+        <img src="/static/samplePlant.jpg" alt="Plant">
+        <div class="stat temp">🌡️ {{temperature}} °C</div>
+        <div class="stat humid">💧 {{humidity}} %</div>
+        <div class="stat light">🔆 {{light_lux}} lux</div>
+        <div class="stat soil">🌿 {{soil_moisture}}</div>
+        <div class="stat dist">📏 {{distance_mm}} mm</div>
+    </div>
+</body>
+</html>
