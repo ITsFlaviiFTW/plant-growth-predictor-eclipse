@@ -158,11 +158,30 @@
 </head>
 <body>
     <div class="dashboard">
-        <h1>🌿 Plant Health Dashboard</h1>
+        <h1>Plant Health Dashboard</h1>
+        <form method="get" action="/" style="margin-bottom: 25px;">
+            <label for="plantSelect" style="font-size: 14px; color: #194d33; margin-right: 10px;">🌿 Select Plant:</label>
+            <select id="plantSelect" name="esp_id" onchange="this.form.submit()" style="
+        padding: 8px 14px;
+        border-radius: 10px;
+        border: 1px solid #ccc;
+        background-color: #f0f8f3;
+        font-size: 14px;
+        color: #194d33;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    ">
+                {% for pid in esp_ids %}
+                <option value="{{ pid }}" {% if pid == esp_id %}selected{% endif %}>{{ pid }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+
         <button class="refresh-button" onclick="location.reload()">🔄 Refresh</button>
 
         <div class="circle-container">
-            <img src="static/samplePlant.png?v=1" alt="Plant" />
+            <img src="/static/samplePlant.png?v=1" alt="Plant" />
 
             <div class="stat temp">
                 <h4><span class="indicator green"></span>🌡️ Temperature</h4>

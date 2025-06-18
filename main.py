@@ -6,7 +6,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import pytz
-
+from fastapi import Query
 from database.models import CurrentSensorData
 from database.database import get_db
 
@@ -43,13 +43,20 @@ def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
 
 # Render live dashboard
 @app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, db: Session = Depends(get_db)):
-    latest = db.query(CurrentSensorData).order_by(CurrentSensorData.timestamp.desc()).first()
+def dashboard(request: Request, db: Session = Depends(get_db), esp_id: str = Query(None)):
+    esp_ids = db.query(CurrentSensorData.esp_id).distinct().all()
+    esp_ids = [row.esp_id for row in esp_ids]
 
+    if not esp_id:
+        first = db.query(CurrentSensorData.esp_id).order_by(CurrentSensorData.timestamp.desc()).first()
+        if not first:
+            return HTMLResponse("<h2>No sensor data available.</h2>")
+        esp_id = first.esp_id
+
+    latest = db.query(CurrentSensorData).filter_by(esp_id=esp_id).order_by(CurrentSensorData.timestamp.desc()).first()
     if not latest:
-        return HTMLResponse("<h2>No sensor data available.</h2>")
+        return HTMLResponse(f"<h2>No data for {esp_id}</h2>")
 
-    # Convert UTC timestamp to local time (Eastern Time)
     eastern = pytz.timezone("America/Toronto")
     local_time = latest.timestamp.replace(tzinfo=pytz.utc).astimezone(eastern)
 
@@ -62,4 +69,7 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
         "distance_mm": latest.distance_mm,
         "esp_id": latest.esp_id,
         "timestamp": local_time.strftime("%Y-%m-%d %H:%M:%S"),
+        "esp_ids": esp_ids
     })
+
+
