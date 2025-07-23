@@ -1,247 +1,417 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Plant Health Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: #e8f5ec;
-            margin: 0;
+        .bar-container {
+            position: relative;
+            width: 100%;
+            height: 32px;
+            background-color: #f3f4f6;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .optimal-range {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            background-color: #dcfce7;
+            opacity: 0.5;
+            border-radius: 4px;
+        }
+        
+        .current-bar {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.5s ease;
+        }
+        
+        .target-line {
+            position: absolute;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background-color: #16a34a;
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .chart-placeholder {
+            height: 200px;
+            background: linear-gradient(45deg, #f3f4f6, #e5e7eb);
+            border-radius: 8px;
             display: flex;
-            justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            justify-content: center;
+            color: #6b7280;
+            font-weight: 500;
         }
 
-        .dashboard {
-            background-color: white;
-            padding: 40px 30px 80px;
-            border-radius: 30px;
-            width: 500px;
-            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
-            text-align: center;
-            position: relative;
-        }
-
-        h1 {
-            font-size: 24px;
-            color: #194d33;
-            margin-top: 10px;
-            margin-bottom: 12px;
-        }
-
-        .refresh-button {
-            background-color: #324d7c;
-            color: white;
-            padding: 8px 20px;
-            font-size: 14px;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            margin-bottom: 25px;
-        }
-
-        .circle-container {
-            position: relative;
-            width: 360px;
-            height: 360px;
-            margin: 0 auto;
-        }
-
-            .circle-container img {
-                position: absolute;
-                width: 140px;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                z-index: 1;
-                animation: fadein 0.6s ease-in-out forwards;
-                opacity: 0;
-            }
-
-        @keyframes fadein {
-            to {
-                opacity: 1;
-            }
-        }
-
-        .stat {
-            position: absolute;
-            width: 110px;
-            background: #f6fcf8;
-            border-radius: 12px;
-            padding: 10px;
-            font-size: 13px;
-            text-align: center;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-            .stat h4 {
-                margin: 0;
-                font-weight: normal;
-                color: #555;
-                font-size: 13px;
-            }
-
-            .stat p {
-                margin: 6px 0 0;
-                font-size: 17px;
-                font-weight: bold;
-                color: #000;
-            }
-
-        .indicator {
+        .icon {
+            width: 1rem;
+            height: 1rem;
             display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 6px;
+            vertical-align: middle;
         }
 
-        .green {
-            background-color: #4caf50;
+        .icon-lg {
+            width: 1.5rem;
+            height: 1.5rem;
         }
 
-        .yellow {
-            background-color: #ffeb3b;
+        .icon-xl {
+            width: 2rem;
+            height: 2rem;
         }
-
-        .red {
-            background-color: #f44336;
-        }
-
-        .temp {
-            top: 20px;
-            left: 30px;
-        }
-
-        .humid {
-            top: 20px;
-            right: 30px;
-        }
-
-        .soil {
-            bottom: 115px;
-            left: 15px;
-        }
-
-        .light {
-            bottom: 115px;
-            right: 15px;
-        }
-
-        .height {
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .plant-name {
-            margin-top: 40px;
-            font-size: 15px;
-            font-weight: bold;
-            color: #194d33;
-        }
-
-        .meta {
-            font-size: 13px;
-            color: #444;
-            margin-top: 6px;
-        }
-
-            .meta strong {
-                color: #000;
-            }
-
-        #health-status {
-            position: absolute;
-            bottom: -70px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 160px;
-            padding: 12px;
-            border-radius: 14px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-            #health-status h4 {
-                font-size: 14px;
-                color: #333;
-                margin: 0;
-            }
-
-            #health-status p {
-                font-size: 16px;
-                font-weight: bold;
-                margin-top: 6px;
-            }
     </style>
 </head>
-<body>
-    <div class="dashboard">
-        <h1>Plant Health Dashboard</h1>
-        <form method="get" action="/" style="margin-bottom: 25px;">
-            <label for="plantSelect" style="font-size: 14px; color: #194d33; margin-right: 10px;">🌿 Select Plant:</label>
-            <select id="plantSelect" name="esp_id" onchange="this.form.submit()" style="
-                padding: 8px 14px;
-                border-radius: 10px;
-                border: 1px solid #ccc;
-                background-color: #f0f8f3;
-                font-size: 14px;
-                color: #194d33;
-                cursor: pointer;
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-            ">
-                {% for pid in esp_ids %}
-                <option value="{{ pid }}" {% if pid == esp_id %}selected{% endif %}>{{ pid }}</option>
-                {% endfor %}
-            </select>
-        </form>
-
-        <button class="refresh-button" onclick="location.reload()">🔄 Refresh</button>
-
-        <div class="circle-container">
-            <img src="/static/samplePlant.png?v=1" alt="Plant" />
-
-            <div class="stat temp">
-                <h4><span class="indicator green"></span>🌡️ Temperature</h4>
-                <p>{{ temperature }} °C</p>
-            </div>
-
-            <div class="stat humid">
-                <h4><span class="indicator green"></span>💧 Humidity</h4>
-                <p>{{ humidity }} %</p>
-            </div>
-
-            <div class="stat soil">
-                <h4><span class="indicator yellow"></span>🌱 Soil Moisture</h4>
-                <p>{{ soil_moisture }}</p>
-            </div>
-
-            <div class="stat light">
-                <h4><span class="indicator red"></span>🔆 Light</h4>
-                <p>{{ light_lux }} lux</p>
-            </div>
-
-            <div class="stat height">
-                <h4><span class="indicator green"></span>📏 Height</h4>
-                <p>{{ distance_mm }} mm</p>
+<body class="min-h-screen bg-gray-50">
+    <div class="max-w-7xl mx-auto p-6 space-y-8">
+        <!-- Header -->
+        <div class="flex items-center justify-between">
+            <h1 class="text-2xl font-semibold text-gray-900">Plant Health Monitor</h1>
+            <div class="flex items-center gap-4">
+                <form method="get" action="/">
+                    <select id="plantSelect" name="esp_id" onchange="this.form.submit()" class="w-32 border border-gray-300 rounded-md px-3 py-2 bg-white">
+                        {% for pid in esp_ids %}
+                        <option value="{{ pid }}" {% if pid == esp_id %}selected{% endif %}>{{ pid }}</option>
+                        {% endfor %}
+                    </select>
+                </form>
+                <button id="refreshBtn" onclick="location.reload()" class="border border-gray-300 bg-transparent px-3 py-2 rounded-md hover:bg-gray-50">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                    </svg>
+                </button>
             </div>
         </div>
 
-        <div id="health-status">
-            <h4>🧠 AI Health Prediction</h4>
-            <p id="health-result">{{ predicted_health }}</p>
-        </div>
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- AI Insights -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Main AI Card -->
+                <div class="bg-white rounded-lg shadow-lg p-8">
+                    <!-- Health Score -->
+                    <div class="text-center mb-8">
+                        <div class="inline-flex items-center gap-3 mb-4">
+                            <svg class="icon-xl text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                            </svg>
+                            <span class="text-xl font-medium text-gray-700">AI Health Analysis</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="text-6xl font-bold text-gray-900" id="healthScore">{{ predicted_health }}</div>
+                            <div class="text-lg text-gray-600">Health Score</div>
+                            <div class="max-w-md mx-auto bg-gray-200 rounded-full h-3">
+                                <div class="bg-blue-600 h-3 rounded-full transition-all duration-500" style="width: 65%"></div>
+                            </div>
+                            <span class="inline-block bg-gray-100 text-gray-800 text-sm px-3 py-1 rounded-full">94% Confidence</span>
+                        </div>
+                    </div>
 
-        <div class="plant-name">Sample Plant 🌱</div>
+                    <!-- Status Alert -->
+                    <div class="border border-amber-200 bg-amber-50 rounded-lg p-4 mb-8">
+                        <div class="flex items-center">
+                            <svg class="icon-lg text-amber-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <div class="flex items-center justify-between w-full">
+                                <span class="text-lg font-medium text-amber-800">Needs Attention</span>
+                                <span class="border border-amber-300 text-amber-700 text-xs px-2 py-1 rounded">Medium Priority</span>
+                            </div>
+                        </div>
+                    </div>
 
-        <div class="meta">
-            <p>ESP ID: <strong>{{ esp_id }}</strong></p>
-            <p>Last updated: {{ timestamp }}</p>
+                    <!-- Primary Action -->
+                    <div class="bg-blue-600 text-white rounded-lg p-6 mb-8">
+                        <div class="flex items-center gap-3 mb-3">
+                            <div class="w-3 h-3 bg-white rounded-full pulse"></div>
+                            <span class="text-lg font-semibold">Immediate Action Required</span>
+                        </div>
+                        <div class="text-2xl font-bold mb-2">Water your plant immediately</div>
+                        <div class="flex items-center gap-2 text-blue-100">
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Within 2 hours</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Placeholder -->
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Health Trend Chart -->
+                    <div class="bg-white rounded-lg shadow-lg">
+                        <div class="p-6 pb-4">
+                            <h3 class="flex items-center gap-2 text-lg font-semibold">
+                                <svg class="icon-lg text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                                </svg>
+                                Health Trend & Prediction
+                            </h3>
+                        </div>
+                        <div class="p-6 pt-0">
+                            <div class="chart-placeholder">
+                                📈 Health improving from 45 → 90 points
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-gray-600">
+                                    Predicted improvement: <span class="font-semibold text-green-600">+25 points</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Impact Chart -->
+                    <div class="bg-white rounded-lg shadow-lg">
+                        <div class="p-6 pb-4">
+                            <h3 class="flex items-center gap-2 text-lg font-semibold">
+                                <svg class="icon-lg text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+                                </svg>
+                                Action Impact
+                            </h3>
+                        </div>
+                        <div class="p-6 pt-0">
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Water Plant</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 h-3 bg-gray-200 rounded-full">
+                                            <div class="w-20 h-3 bg-blue-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-sm font-semibold">+25</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Increase Humidity</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 h-3 bg-gray-200 rounded-full">
+                                            <div class="w-12 h-3 bg-cyan-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-sm font-semibold">+15</span>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm">Monitor Recovery</span>
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-20 h-3 bg-gray-200 rounded-full">
+                                            <div class="w-8 h-3 bg-green-500 rounded-full"></div>
+                                        </div>
+                                        <span class="text-sm font-semibold">+10</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-4 text-center">
+                                <p class="text-sm text-gray-600">
+                                    Total potential improvement: <span class="font-semibold text-blue-600">+50 points</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recommendations -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-lg font-semibold text-gray-900 flex items-center gap-2 mb-6">
+                        <svg class="icon-lg text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        AI Recommendations
+                    </h3>
+                    <div class="space-y-3" id="recommendations">
+                        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">1</div>
+                            <span class="text-gray-800 font-medium flex-1">Add 200ml of water to soil</span>
+                            <span class="border border-gray-300 text-gray-700 text-xs px-2 py-1 rounded">+25 pts</span>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">2</div>
+                            <span class="text-gray-800 font-medium flex-1">Increase room humidity to 60-70%</span>
+                            <span class="border border-gray-300 text-gray-700 text-xs px-2 py-1 rounded">+15 pts</span>
+                        </div>
+                        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
+                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">3</div>
+                            <span class="text-gray-800 font-medium flex-1">Monitor for recovery signs</span>
+                            <span class="border border-gray-300 text-gray-700 text-xs px-2 py-1 rounded">+10 pts</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vertical Plant Data -->
+            <div class="space-y-6">
+                <!-- Plant Visual -->
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg p-6 text-center">
+                    <div class="text-6xl mb-4">🌱</div>
+                    <h3 class="font-semibold text-gray-800 mb-1">Sample Plant</h3>
+                    <p class="text-sm text-gray-600 font-mono" id="plantId">{{ esp_id }}</p>
+                    <p class="text-xs text-gray-500 mt-2">Updated: {{ timestamp }}</p>
+                </div>
+
+                <!-- Vertical Sensor Data -->
+                <div class="bg-white rounded-lg shadow-lg">
+                    <div class="p-6 pb-4">
+                        <h3 class="text-lg font-semibold">Plant Vitals</h3>
+                    </div>
+                    <div class="p-6 pt-0 space-y-6" id="sensorData">
+                        <!-- Temperature -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="icon-lg text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                    <span class="font-medium text-gray-700 text-sm">Temperature</span>
+                                </div>
+                                <span class="border border-green-200 text-green-700 text-xs px-2 py-1 rounded">optimal</span>
+                            </div>
+                            <div class="relative">
+                                <div class="bar-container">
+                                    <div class="optimal-range" style="left: 63%; width: 20%;"></div>
+                                    <div class="current-bar" style="width: 82%; background-color: #22c55e;"></div>
+                                    <div class="target-line" style="left: 73%;"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-lg font-bold text-gray-900">{{ temperature }}<span class="text-sm text-gray-600 ml-1">°C</span></span>
+                                    <span class="text-xs text-gray-500">Target: 22°C</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Humidity -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="icon-lg text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10"></path>
+                                    </svg>
+                                    <span class="font-medium text-gray-700 text-sm">Humidity</span>
+                                </div>
+                                <span class="border border-amber-200 text-amber-700 text-xs px-2 py-1 rounded">low</span>
+                            </div>
+                            <div class="relative">
+                                <div class="bar-container">
+                                    <div class="optimal-range" style="left: 55%; width: 20%;"></div>
+                                    <div class="current-bar" style="width: 51%; background-color: #f59e0b;"></div>
+                                    <div class="target-line" style="left: 65%;"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-lg font-bold text-gray-900">{{ humidity }}<span class="text-sm text-gray-600 ml-1">%</span></span>
+                                    <span class="text-xs text-gray-500">Target: 65%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Soil Moisture -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="icon-lg text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                    </svg>
+                                    <span class="font-medium text-gray-700 text-sm">Soil Moisture</span>
+                                </div>
+                                <span class="border border-red-200 text-red-700 text-xs px-2 py-1 rounded">critical</span>
+                            </div>
+                            <div class="relative">
+                                <div class="bar-container">
+                                    <div class="optimal-range" style="left: 60%; width: 20%;"></div>
+                                    <div class="current-bar" style="width: {{ soil_moisture }}%; background-color: {% if soil_moisture >= 60 %}#22c55e{% elif soil_moisture >= 40 %}#f59e0b{% else %}#ef4444{% endif %};"></div>
+                                    <div class="target-line" style="left: 70%;"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-lg font-bold text-gray-900">{{ soil_moisture }}<span class="text-sm text-gray-600 ml-1">%</span></span>
+                                    <span class="text-xs text-gray-500">Target: 70%</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Light -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="icon-lg text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                                    </svg>
+                                    <span class="font-medium text-gray-700 text-sm">Light</span>
+                                </div>
+                                <span class="border border-green-200 text-green-700 text-xs px-2 py-1 rounded">good</span>
+                            </div>
+                            <div class="relative">
+                                <div class="bar-container">
+                                    <div class="optimal-range" style="left: 40%; width: 20%;"></div>
+                                    <div class="current-bar" style="width: 55%; background-color: #22c55e;"></div>
+                                    <div class="target-line" style="left: 50%;"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-lg font-bold text-gray-900">{{ light_lux }}<span class="text-sm text-gray-600 ml-1">lux</span></span>
+                                    <span class="text-xs text-gray-500">Target: 1000lux</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Height -->
+                        <div class="space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <svg class="icon-lg text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+                                    </svg>
+                                    <span class="font-medium text-gray-700 text-sm">Height</span>
+                                </div>
+                                <span class="border border-green-200 text-green-700 text-xs px-2 py-1 rounded">normal</span>
+                            </div>
+                            <div class="relative">
+                                <div class="bar-container">
+                                    <div class="optimal-range" style="left: 45%; width: 20%;"></div>
+                                    <div class="current-bar" style="width: 60%; background-color: #22c55e;"></div>
+                                    <div class="target-line" style="left: 55%;"></div>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span class="text-lg font-bold text-gray-900">{{ plant_height_mm }}<span class="text-sm text-gray-600 ml-1">mm</span></span>
+                                    <span class="text-xs text-gray-500">Target: 55mm</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
+    <script>
+        // Event listeners
+        document.getElementById('refreshBtn').addEventListener('click', function() {
+            const icon = this.querySelector('svg');
+            icon.style.transform = 'rotate(360deg)';
+            icon.style.transition = 'transform 1s ease';
+            setTimeout(() => {
+                icon.style.transform = 'rotate(0deg)';
+            }, 1000);
+        });
+
+        document.getElementById('plantSelect').addEventListener('change', function() {
+            document.getElementById('plantId').textContent = this.value;
+        });
+
+        // Simple loading check
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Plant Health Dashboard loaded successfully!');
+        });
+    </script>
 </body>
 </html>
