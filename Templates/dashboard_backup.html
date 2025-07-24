@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Plant Health Dashboard</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #e8f5ec;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .dashboard {
+            background-color: white;
+            padding: 40px 30px 80px;
+            border-radius: 30px;
+            width: 500px;
+            box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+            text-align: center;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #194d33;
+            margin-top: 10px;
+            margin-bottom: 12px;
+        }
+
+        .refresh-button {
+            background-color: #324d7c;
+            color: white;
+            padding: 8px 20px;
+            font-size: 14px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            margin-bottom: 25px;
+        }
+
+        .circle-container {
+            position: relative;
+            width: 360px;
+            height: 360px;
+            margin: 0 auto;
+        }
+
+            .circle-container img {
+                position: absolute;
+                width: 140px;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 1;
+                animation: fadein 0.6s ease-in-out forwards;
+                opacity: 0;
+            }
+
+        @keyframes fadein {
+            to {
+                opacity: 1;
+            }
+        }
+
+        .stat {
+            position: absolute;
+            width: 110px;
+            background: #f6fcf8;
+            border-radius: 12px;
+            padding: 10px;
+            font-size: 13px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+            .stat h4 {
+                margin: 0;
+                font-weight: normal;
+                color: #555;
+                font-size: 13px;
+            }
+
+            .stat p {
+                margin: 6px 0 0;
+                font-size: 17px;
+                font-weight: bold;
+                color: #000;
+            }
+
+        .indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 6px;
+        }
+
+        .green {
+            background-color: #4caf50;
+        }
+
+        .yellow {
+            background-color: #ffeb3b;
+        }
+
+        .red {
+            background-color: #f44336;
+        }
+
+        .temp {
+            top: 20px;
+            left: 30px;
+        }
+
+        .humid {
+            top: 20px;
+            right: 30px;
+        }
+
+        .soil {
+            bottom: 115px;
+            left: 15px;
+        }
+
+        .light {
+            bottom: 115px;
+            right: 15px;
+        }
+
+        .height {
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .plant-name {
+            margin-top: 40px;
+            font-size: 15px;
+            font-weight: bold;
+            color: #194d33;
+        }
+
+        .meta {
+            font-size: 13px;
+            color: #444;
+            margin-top: 6px;
+        }
+
+            .meta strong {
+                color: #000;
+            }
+
+        #health-status {
+            position: absolute;
+            bottom: -70px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 160px;
+            padding: 12px;
+            border-radius: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+            #health-status h4 {
+                font-size: 14px;
+                color: #333;
+                margin: 0;
+            }
+
+            #health-status p {
+                font-size: 16px;
+                font-weight: bold;
+                margin-top: 6px;
+            }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Plant Health Dashboard</h1>
+        <form method="get" action="/" style="margin-bottom: 25px;">
+            <label for="plantSelect" style="font-size: 14px; color: #194d33; margin-right: 10px;">🌿 Select Plant:</label>
+            <select id="plantSelect" name="esp_id" onchange="this.form.submit()" style="
+                padding: 8px 14px;
+                border-radius: 10px;
+                border: 1px solid #ccc;
+                background-color: #f0f8f3;
+                font-size: 14px;
+                color: #194d33;
+                cursor: pointer;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            ">
+                {% for pid in esp_ids %}
+                <option value="{{ pid }}" {% if pid == esp_id %}selected{% endif %}>{{ pid }}</option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <button class="refresh-button" onclick="location.reload()">🔄 Refresh</button>
+
+        <div class="circle-container">
+            <img src="/static/samplePlant.png?v=1" alt="Plant" />
+
+            <div class="stat temp">
+                <h4><span class="indicator green"></span>🌡️ Temperature</h4>
+                <p>{{ temperature }} °C</p>
+            </div>
+
+            <div class="stat humid">
+                <h4><span class="indicator green"></span>💧 Humidity</h4>
+                <p>{{ humidity }} %</p>
+            </div>
+
+            <div class="stat soil">
+                <h4><span class="indicator yellow"></span>🌱 Soil Moisture</h4>
+                <p>{{ soil_moisture }}</p>
+            </div>
+
+            <div class="stat light">
+                <h4><span class="indicator red"></span>🔆 Light</h4>
+                <p>{{ light_lux }} lux</p>
+            </div>
+
+            <div class="stat height">
+                <h4><span class="indicator green"></span>📏 Height</h4>
+                <p>{{ plant_height_mm }} mm</p>
+            </div>
+        </div>
+
+        <div id="health-status">
+            <h4>🧠 AI Health Prediction</h4>
+            <p id="health-result">{{ predicted_health }}</p>
+        </div>
+
+        <div class="plant-name">Sample Plant 🌱</div>
+
+        <div class="meta">
+            <p>ESP ID: <strong>{{ esp_id }}</strong></p>
+            <p>Last updated: {{ timestamp }}</p>
+        </div>
+    </div>
+
+</body>
+</html>

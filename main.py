@@ -27,7 +27,7 @@ with model_path.open("rb") as f:
 with encoder_path.open("rb") as f:
     label_encoder = pickle.load(f)
 
-# ✅ Check if model is valid
+# Check if model is valid
 if isinstance(model, pd.DataFrame) or isinstance(model, pd.Series) or isinstance(model, (list, tuple)) or isinstance(model, (str, bytes)) or isinstance(model, (int, float)):
     raise TypeError("Loaded object from health_model.pkl is not a valid sklearn model. It appears to be a raw data object.")
 
@@ -43,18 +43,20 @@ class SensorData(BaseModel):
     light_lux: float
     soil_moisture: int
     distance_mm: int
+    plant_height_mm: int
 
 # ESP32 POST endpoint
 @app.post("/sensor/update")
 def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     entry = CurrentSensorData(
-        esp_id=data.esp_id,
-        timestamp=datetime.utcnow(),
-        temperature=data.temperature,
-        humidity=data.humidity,
-        light_lux=data.light_lux,
-        soil_moisture=data.soil_moisture,
-        distance_mm=data.distance_mm,
+    esp_id=data.esp_id,
+    timestamp=datetime.utcnow(),
+    temperature=data.temperature,
+    humidity=data.humidity,
+    light_lux=data.light_lux,
+    soil_moisture=data.soil_moisture,
+    distance_mm=data.distance_mm,
+    plant_height_mm=data.plant_height_mm
     )
     db.add(entry)
     db.commit()
@@ -122,7 +124,7 @@ def dashboard(request: Request, db: Session = Depends(get_db), esp_id: str = Que
         "humidity": f"{latest.humidity:.1f}",
         "light_lux": f"{latest.light_lux:.0f}",
         "soil_moisture": latest.soil_moisture,
-        "distance_mm": latest.distance_mm,
+        "plant_height_mm": latest.plant_height_mm,
         "esp_id": latest.esp_id,
         "timestamp": local_time.strftime("%Y-%m-%d %H:%M:%S"),
         "esp_ids": esp_ids,
