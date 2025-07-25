@@ -18,8 +18,9 @@ import types
 app = FastAPI()
 
 # Load model and encoder
-model_path = Path("ml/health_model.pkl")
-encoder_path = Path("ml/label_encoder.pkl")
+BASE_DIR = Path(__file__).resolve().parent
+model_path = BASE_DIR / "ml" / "health_model.pkl"
+encoder_path = BASE_DIR / "ml" / "label_encoder.pkl"
 
 with model_path.open("rb") as f:
     model = pickle.load(f)
