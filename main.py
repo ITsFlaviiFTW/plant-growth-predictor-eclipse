@@ -10,14 +10,19 @@ import pytz
 import pickle
 import pandas as pd
 from pathlib import Path
-
 from database.models import CurrentSensorData
 from database.database import get_db
 from ml.preprocess_kaggle_data import bin_temperature, bin_humidity, bin_light, bin_soil
 from ml.recommendations import suggest
 from ml.t5_predict import generate_suggestion
+from login.login_routes import router as auth_router
+from fastapi.responses import RedirectResponse
+from login.auth import SECRET_KEY, ALGORITHM
+from jose import jwt, JWTError
+
 
 app = FastAPI()
+app.include_router(auth_router)
 
 # Load model and encoder
 BASE_DIR = Path(__file__).resolve().parent
@@ -165,7 +170,24 @@ def custom_suggestion(data: dict = Body(...)):
 
 # GET: live dashboard
 @app.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, db: Session = Depends(get_db), esp_id: str = Query(None)):
+def dashboard(
+    request: Request,
+    db: Session = Depends(get_db),
+    esp_id: str = Query(None)
+):
+    # Check auth
+    token = request.cookies.get("access_token")
+    if not token:
+        return RedirectResponse("/auth/login")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise ValueError
+    except (JWTError, ValueError):
+        return RedirectResponse("/auth/login")
+
+    # Same existing dashboard logic below
     esp_ids = [row.esp_id for row in db.query(CurrentSensorData.esp_id).distinct().all()]
 
     if not esp_id:
@@ -202,7 +224,6 @@ def dashboard(request: Request, db: Session = Depends(get_db), esp_id: str = Que
     confidence = round(model.predict_proba(X)[0][prediction] * 100, 2)
     importances = dict(zip(X.columns, model.feature_importances_))
     explanation = explain_prediction(binned, importances)
-
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
