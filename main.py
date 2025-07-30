@@ -19,10 +19,15 @@ from login.login_routes import router as auth_router
 from fastapi.responses import RedirectResponse
 from login.auth import SECRET_KEY, ALGORITHM
 from jose import jwt, JWTError
-
+from plot import light_intensity
+from plot import temp_humidity
+from plot import soil_moisture
 
 app = FastAPI()
 app.include_router(auth_router)
+app.include_router(light_intensity.router)
+app.include_router(temp_humidity.router)
+app.include_router(soil_moisture.router)
 
 # Load model and encoder
 BASE_DIR = Path(__file__).resolve().parent
