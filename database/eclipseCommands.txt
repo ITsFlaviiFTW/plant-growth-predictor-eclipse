@@ -1,0 +1,31 @@
+disk space command: df -h
+
+tmux new -s eclipse
+
+cd ~/plant-growth-predictor-eclipse
+
+source venv/bin/activate
+
+uvicorn main:app --host 0.0.0.0 --port 8000
+
+ngrok http --host-header=rewrite --domain=eclipsedashboard.ngrok.app 8000
+
+
+psql -U plant_user -d plant_monitoring
+
+TMUX Commands
+New window			Ctrl + b, then c
+Switch window			Ctrl + b, then n (next), or p (prev)
+Rename window			Ctrl + b, then ,
+List windows			Ctrl + b, then w
+Split pane vertically		Ctrl + b, then %
+Split pane horizontally		Ctrl + b, then "
+Switch between panes		Ctrl + b, then arrow key (← ↑ → ↓)
+Resize pane			Ctrl + b, then : → type resize-pane -D etc.
+Close current pane		exit or Ctrl + d inside the pane
+
+# Detach from session (but keep everything running)
+Ctrl + b → d
+
+# Resume it later
+tmux attach -t eclipse

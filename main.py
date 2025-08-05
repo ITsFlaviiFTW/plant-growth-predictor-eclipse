@@ -219,8 +219,6 @@ class SensorData(BaseModel):
 def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     # Check if esp_id is assigned to a plant
     from database.models import Plant
-    if not db.query(Plant).filter_by(esp_id=data.esp_id).first():
-        return {"error": "ESP32 not registered. Please add the plant first."}
     entry = CurrentSensorData(
         esp_id=data.esp_id,
         timestamp=datetime.utcnow(),
