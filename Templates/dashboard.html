@@ -14,7 +14,7 @@
             border-radius: 8px;
             overflow: hidden;
         }
-        
+
         .optimal-range {
             position: absolute;
             top: 0;
@@ -23,7 +23,7 @@
             opacity: 0.4;
             border-radius: 4px;
         }
-        
+
         .current-bar {
             position: absolute;
             top: 0;
@@ -32,7 +32,7 @@
             transition: width 0.5s ease;
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
         }
-        
+
         .target-line {
             position: absolute;
             top: 0;
@@ -41,16 +41,21 @@
             background-color: #10b981;
             box-shadow: 0 0 4px rgba(16, 185, 129, 0.5);
         }
-        
+
         .pulse {
             animation: pulse 2s infinite;
         }
-        
+
         @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.7; }
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
         }
-        
+
         .chart-placeholder {
             height: 200px;
             background: linear-gradient(45deg, #374151, #4b5563);
@@ -92,11 +97,11 @@
             transition: all 0.3s ease;
         }
 
-        .metric-card:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
+            .metric-card:hover {
+                background: rgba(255, 255, 255, 0.12);
+                transform: translateY(-2px);
+                box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            }
 
         .status-badge {
             backdrop-filter: blur(8px);
@@ -113,7 +118,219 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
+        /* Delete Modal Styles */
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(4px);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .success-animation {
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            70% {
+                transform: scale(0.9);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .icon-2xl {
+            width: 3rem;
+            height: 3rem;
+        }
+
+        /* Custom checkbox styling */
+        .custom-checkbox {
+            appearance: none;
+            width: 1.25rem;
+            height: 1.25rem;
+            border: 2px solid #6b7280;
+            border-radius: 0.375rem;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+            .custom-checkbox:checked {
+                background: #10b981;
+                border-color: #10b981;
+            }
+
+                .custom-checkbox:checked::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-size: 0.875rem;
+                    font-weight: bold;
+                }
+
+            .custom-checkbox:hover {
+                border-color: #10b981;
+            }
+
+        .plant-item {
+            transition: all 0.3s ease;
+        }
+
+            .plant-item:hover {
+                background: rgba(255, 255, 255, 0.05);
+                transform: translateX(4px);
+            }
+
+            .plant-item.selected {
+                background: rgba(16, 185, 129, 0.1);
+                border-color: #10b981;
+            }
+
+                .plant-item.selected .plant-icon {
+                    transform: scale(1.1);
+                }
+
+        /* Select all checkbox */
+        .select-all-checkbox {
+            appearance: none;
+            width: 1.125rem;
+            height: 1.125rem;
+            border: 2px solid #6b7280;
+            border-radius: 0.25rem;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+            .select-all-checkbox:checked {
+                background: #3b82f6;
+                border-color: #3b82f6;
+            }
+
+                .select-all-checkbox:checked::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                }
+
+            .select-all-checkbox:indeterminate {
+                background: #6b7280;
+                border-color: #6b7280;
+            }
+
+                .select-all-checkbox:indeterminate::after {
+                    content: '−';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-size: 0.875rem;
+                    font-weight: bold;
+                }
+
+        /* Health status indicators */
+        .health-excellent {
+            color: #10b981;
+        }
+
+        .health-good {
+            color: #84cc16;
+        }
+
+        .health-warning {
+            color: #f59e0b;
+        }
+
+        .health-critical {
+            color: #ef4444;
+        }
+
+        /* Pulse animation for selected count */
+        .pulse-gentle {
+            animation: pulseGentle 2s infinite;
+        }
+
+        @keyframes pulseGentle {
+            0%, 100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
         /* Custom scrollbar for better aesthetics */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+            .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.5);
+            }
+
+        /* General scrollbar */
         ::-webkit-scrollbar {
             width: 6px;
         }
@@ -128,9 +345,9 @@
             border-radius: 3px;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.5);
-        }
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.5);
+            }
     </style>
 </head>
 <body class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
@@ -154,6 +371,11 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
                     </svg>
                 </button>
+                <!-- Delete Plants Button -->
+                <button id="openDeleteModal" class="border border-red-600 bg-gray-800 px-4 py-2.5 rounded-lg text-red-400 hover:bg-gray-700 hover:border-red-500 transition-all duration-200">
+                    Delete Plants
+                </button>
+                <!-- Add Plant Button -->
                 <a href="/plants/add" class="border border-emerald-600 bg-gray-800 px-4 py-2.5 rounded-lg text-emerald-400 hover:bg-gray-700 hover:border-emerald-500 transition-all duration-200">
                     Add Plant
                 </a>
@@ -222,7 +444,7 @@
                             <a href="/plot/soil-moisture" target="_blank">
                                 <img src="/plot/soil-moisture" alt="Soil Moisture Graph"
                                      class="rounded-lg shadow-lg w-full cursor-zoom-in hover:opacity-90 transition">
-                            </a>                     
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -238,7 +460,7 @@
                     {% else %}
                     <div class="text-5xl">🌱</div>
                     {% endif %}
-                    <h3 class="font-bold text-white mb-2 text-lg">Sample Plant</h3>
+                    <h3 class="font-bold text-white mb-2 text-lg">{{ plant.nickname }}</h3>
                     <p class="text-sm text-gray-300 font-mono bg-gray-800/50 px-3 py-1 rounded-full inline-block" id="plantId">{{ latest.esp_id }}</p>
                     <p class="text-xs text-gray-400 mt-3">Updated: {{ latest.timestamp }}</p>
                 </div>
@@ -385,9 +607,142 @@
         </div>
     </div>
 
+    <!-- Delete Plants Modal -->
+    <div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Overlay -->
+        <div class="modal-overlay absolute inset-0 fade-in" id="modalOverlay"></div>
+
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-2xl mx-auto">
+            <!-- Main Delete Modal -->
+            <div id="mainDeleteModal" class="glass-card rounded-2xl shadow-2xl scale-in">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-red-500/20 rounded-lg">
+                            <svg class="icon-lg text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Delete Plants</h2>
+                            <p class="text-sm text-gray-400">Select plants you want to remove from your dashboard</p>
+                        </div>
+                    </div>
+                    <button id="closeModal" class="text-gray-400 hover:text-white transition-colors p-2">
+                        <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Selection Controls -->
+                <div class="px-6 py-4 border-b border-gray-700 bg-gray-800/30">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox">
+                            <label for="selectAllCheckbox" class="text-sm font-medium text-gray-300 cursor-pointer">
+                                Select All Plants
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span id="selectedCount" class="text-sm text-gray-400">
+                                <span class="font-semibold text-emerald-400">0</span> selected
+                            </span>
+                            <button id="clearSelection" class="text-sm text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plants List -->
+                <div class="p-6">
+                    <div class="max-h-96 overflow-y-auto custom-scrollbar space-y-3" id="plantsList">
+                        <!-- Plant items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Confirmation Message -->
+                <div id="confirmationMessage" class="hidden mx-6 mb-6">
+                    <div class="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="icon text-red-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                            </svg>
+                            <div class="text-sm">
+                                <p class="font-medium text-red-300 mb-2">
+                                    You are about to permanently delete <span id="deleteCount" class="font-bold">0</span> plant(s).
+                                </p>
+                                <p class="text-red-400 mb-2">This action cannot be undone and will:</p>
+                                <ul class="list-disc list-inside space-y-1 text-red-400 ml-2">
+                                    <li>Remove all plant profiles and settings</li>
+                                    <li>Delete all historical sensor data</li>
+                                    <li>Clear all associated images</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between p-6 border-t border-gray-700 bg-gray-800/30">
+                    <div class="text-sm text-gray-500">
+                        <span id="totalPlantsCount">0</span> plants total
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="cancelBtn" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 hover:border-gray-500 transition-all duration-200">
+                            Cancel
+                        </button>
+                        <button id="deleteBtn" class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg" disabled>
+                            <span id="deleteText">Delete Selected</span>
+                            <svg id="deleteSpinner" class="hidden animate-spin ml-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Success Modal -->
+            <div id="successModal" class="hidden glass-card rounded-2xl shadow-2xl p-8 scale-in">
+                <div class="text-center">
+                    <div class="success-animation">
+                        <div class="inline-flex items-center justify-center w-16 h-16 bg-emerald-500/20 rounded-full mb-4">
+                            <svg class="icon-2xl text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-2xl font-bold text-white mb-2">Plants Deleted Successfully!</h3>
+                        <p class="text-gray-400 mb-6" id="successMessage">Your selected plants have been removed from the dashboard</p>
+                    </div>
+
+                    <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6">
+                        <div class="flex items-start gap-3">
+                            <svg class="icon text-emerald-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm text-emerald-300">
+                                <p class="font-medium mb-1">Cleanup completed:</p>
+                                <ul class="list-disc list-inside space-y-1 text-emerald-400" id="successDetails">
+                                    <!-- Success details will be populated here -->
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="closeSuccessBtn" class="w-full px-6 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 shadow-lg">
+                        Continue to Dashboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Event listeners
-        document.getElementById('refreshBtn').addEventListener('click', function() {
+        // Original dashboard functionality
+        document.getElementById('refreshBtn').addEventListener('click', function () {
             const icon = this.querySelector('svg');
             icon.style.transform = 'rotate(360deg)';
             icon.style.transition = 'transform 1s ease';
@@ -396,12 +751,363 @@
             }, 1000);
         });
 
-        document.getElementById('plantSelect').addEventListener('change', function() {
+        document.getElementById('plantSelect').addEventListener('change', function () {
             document.getElementById('plantId').textContent = this.value;
         });
 
-        // Simple loading check
-        document.addEventListener('DOMContentLoaded', function() {
+        // Delete Modal Functionality
+        let selectedPlants = new Set();
+        let plantsData = [];
+
+        // Plant icons mapping
+        const plantIcons = {
+            'Tomato': '🍅',
+            'Herb': '🌿',
+            'Lettuce': '🥬',
+            'Basil': '🌿',
+            'Pepper': '🌶️',
+            'Cucumber': '🥒',
+            'Flower': '🌸',
+            'Succulent': '🌵',
+            'Berry': '🍓',
+            'Leafy Green': '🥬',
+            'default': '🌱'
+        };
+
+        // DOM Elements
+        const deleteModal = document.getElementById('deleteModal');
+        const mainDeleteModal = document.getElementById('mainDeleteModal');
+        const successModal = document.getElementById('successModal');
+        const plantsList = document.getElementById('plantsList');
+        const selectAllCheckbox = document.getElementById('selectAllCheckbox');
+        const selectedCountSpan = document.getElementById('selectedCount');
+        const confirmationMessage = document.getElementById('confirmationMessage');
+        const deleteBtn = document.getElementById('deleteBtn');
+        const clearSelectionBtn = document.getElementById('clearSelection');
+
+        // Fetch plants data from backend
+        async function fetchPlantsData() {
+            try {
+                const response = await fetch('/plants/list');
+                const data = await response.json();
+                plantsData = data.plants || [];
+                populatePlantsList();
+                updateTotalCount();
+                updateUI();
+            } catch (error) {
+                console.error('Failed to fetch plants data:', error);
+                plantsData = [];
+                populatePlantsList();
+                updateTotalCount();
+                updateUI();
+            }
+        }
+
+        // Populate plants list
+        function populatePlantsList() {
+            plantsList.innerHTML = '';
+
+            if (plantsData.length === 0) {
+                plantsList.innerHTML = `
+                        <div class="text-center py-8 text-gray-400">
+                            <svg class="icon-2xl mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3"></path>
+                            </svg>
+                            <p class="text-lg font-medium">No plants found</p>
+                            <p class="text-sm">Add some plants to your dashboard first</p>
+                        </div>
+                    `;
+                return;
+            }
+
+            plantsData.forEach(plant => {
+                const plantItem = createPlantItem(plant);
+                plantsList.appendChild(plantItem);
+            });
+        }
+
+        // Create individual plant item
+        function createPlantItem(plant) {
+            const div = document.createElement('div');
+            div.className = 'plant-item border border-gray-700 rounded-lg p-4 cursor-pointer transition-all duration-200';
+            div.dataset.plantId = plant.id;
+
+            // Determine health status and class
+            let healthStatus = 'good';
+            let healthClass = 'health-good';
+            if (plant.health >= 90) {
+                healthStatus = 'excellent';
+                healthClass = 'health-excellent';
+            } else if (plant.health >= 70) {
+                healthStatus = 'good';
+                healthClass = 'health-good';
+            } else if (plant.health >= 50) {
+                healthStatus = 'warning';
+                healthClass = 'health-warning';
+            } else {
+                healthStatus = 'critical';
+                healthClass = 'health-critical';
+            }
+
+            const plantIcon = plantIcons[plant.type] || plantIcons.default;
+
+            div.innerHTML = `
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" class="custom-checkbox plant-checkbox" data-plant-id="${plant.id}">
+                        <div class="plant-icon text-2xl transition-transform duration-200">${plantIcon}</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1">
+                                <h3 class="font-semibold text-white truncate">${plant.name}</h3>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-2 h-2 rounded-full ${healthClass}" title="Health: ${plant.health}%"></div>
+                                    <span class="text-sm ${healthClass} font-medium">${plant.health}%</span>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between text-sm text-gray-400">
+                                <span>ESP: ${plant.esp_id}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+            // Add click handler for the entire item
+            div.addEventListener('click', function (e) {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = this.querySelector('.plant-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    handlePlantSelection(checkbox);
+                }
+            });
+
+            // Add checkbox change handler
+            const checkbox = div.querySelector('.plant-checkbox');
+            checkbox.addEventListener('change', function (e) {
+                e.stopPropagation();
+                handlePlantSelection(this);
+            });
+
+            return div;
+        }
+
+        // Handle individual plant selection
+        function handlePlantSelection(checkbox) {
+            const plantId = parseInt(checkbox.dataset.plantId);
+            const plantItem = checkbox.closest('.plant-item');
+
+            if (checkbox.checked) {
+                selectedPlants.add(plantId);
+                plantItem.classList.add('selected');
+            } else {
+                selectedPlants.delete(plantId);
+                plantItem.classList.remove('selected');
+            }
+
+            updateUI();
+        }
+
+        // Handle select all functionality
+        selectAllCheckbox.addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('.plant-checkbox');
+            const plantItems = document.querySelectorAll('.plant-item');
+
+            if (this.checked) {
+                // Select all
+                selectedPlants.clear();
+                checkboxes.forEach(cb => {
+                    cb.checked = true;
+                    selectedPlants.add(parseInt(cb.dataset.plantId));
+                });
+                plantItems.forEach(item => item.classList.add('selected'));
+            } else {
+                // Deselect all
+                selectedPlants.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+                plantItems.forEach(item => item.classList.remove('selected'));
+            }
+
+            updateUI();
+        });
+
+        // Clear selection
+        clearSelectionBtn.addEventListener('click', function () {
+            selectedPlants.clear();
+            document.querySelectorAll('.plant-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.plant-item').forEach(item => item.classList.remove('selected'));
+            updateUI();
+        });
+
+        // Update UI based on selection
+        function updateUI() {
+            const selectedCount = selectedPlants.size;
+            const totalCount = plantsData.length;
+
+            // Update selected count
+            selectedCountSpan.innerHTML = `<span class="font-semibold text-emerald-400 ${selectedCount > 0 ? 'pulse-gentle' : ''}">${selectedCount}</span> selected`;
+
+            // Update select all checkbox state
+            if (selectedCount === 0) {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = false;
+            } else if (selectedCount === totalCount) {
+                selectAllCheckbox.checked = true;
+                selectAllCheckbox.indeterminate = false;
+            } else {
+                selectAllCheckbox.checked = false;
+                selectAllCheckbox.indeterminate = true;
+            }
+
+            // Update clear selection button
+            clearSelectionBtn.disabled = selectedCount === 0;
+
+            // Update delete button
+            deleteBtn.disabled = selectedCount === 0;
+            document.getElementById('deleteText').textContent = selectedCount === 1 ? 'Delete Plant' : `Delete ${selectedCount} Plants`;
+
+            // Show/hide confirmation message
+            if (selectedCount > 0) {
+                confirmationMessage.classList.remove('hidden');
+                document.getElementById('deleteCount').textContent = selectedCount;
+            } else {
+                confirmationMessage.classList.add('hidden');
+            }
+        }
+
+        // Update total count
+        function updateTotalCount() {
+            document.getElementById('totalPlantsCount').textContent = plantsData.length;
+        }
+
+        // Show modal
+        function showModal() {
+            deleteModal.classList.remove('hidden');
+            mainDeleteModal.classList.remove('hidden');
+            successModal.classList.add('hidden');
+            fetchPlantsData(); // Refresh plants data when opening modal
+        }
+
+        // Hide modal
+        function hideModal() {
+            deleteModal.classList.add('hidden');
+            // Reset selections when closing
+            selectedPlants.clear();
+            document.querySelectorAll('.plant-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.plant-item').forEach(item => item.classList.remove('selected'));
+            updateUI();
+        }
+
+        // Handle delete confirmation
+        deleteBtn.addEventListener('click', function () {
+            if (selectedPlants.size === 0) return;
+
+            const deleteText = document.getElementById('deleteText');
+            const deleteSpinner = document.getElementById('deleteSpinner');
+
+            // Show loading state
+            deleteText.textContent = 'Deleting...';
+            deleteSpinner.classList.remove('hidden');
+            this.disabled = true;
+
+            // Create deletion promises
+            const selectedPlantsArray = Array.from(selectedPlants);
+            const deletionPromises = selectedPlantsArray.map(plantId => {
+                return fetch(`/plants/delete/${plantId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+            });
+
+            Promise.all(deletionPromises)
+                .then(responses => {
+                    // Check if all deletions were successful
+                    const allSuccessful = responses.every(response => response.ok);
+
+                    if (allSuccessful) {
+                        // Show success modal
+                        showSuccessModal(selectedPlantsArray.length);
+
+                        // Remove deleted plants from data
+                        selectedPlantsArray.forEach(plantId => {
+                            const index = plantsData.findIndex(plant => plant.id === plantId);
+                            if (index > -1) {
+                                plantsData.splice(index, 1);
+                            }
+                        });
+
+                        // Reset selections
+                        selectedPlants.clear();
+
+                        // Repopulate the list
+                        populatePlantsList();
+                        updateTotalCount();
+                        updateUI();
+                    } else {
+                        throw new Error('Some deletions failed');
+                    }
+                })
+                .catch(error => {
+                    console.error('Delete failed:', error);
+                    alert('Failed to delete some plants. Please try again.');
+                })
+                .finally(() => {
+                    // Reset button state
+                    deleteText.textContent = selectedPlants.size === 1 ? 'Delete Plant' : `Delete ${selectedPlants.size} Plants`;
+                    deleteSpinner.classList.add('hidden');
+                    this.disabled = selectedPlants.size === 0;
+                });
+        });
+
+        // Show success modal
+        function showSuccessModal(deletedCount) {
+            mainDeleteModal.classList.add('hidden');
+            successModal.classList.remove('hidden');
+
+            // Update success message
+            const successMessage = document.getElementById('successMessage');
+            successMessage.textContent = deletedCount === 1
+                ? 'The selected plant has been successfully removed from your dashboard'
+                : `${deletedCount} plants have been successfully removed from your dashboard`;
+
+            // Update success details
+            const successDetails = document.getElementById('successDetails');
+            successDetails.innerHTML = `
+                    <li>${deletedCount} plant profile${deletedCount > 1 ? 's' : ''} removed</li>
+                    <li>All sensor data cleared</li>
+                    <li>Monitoring alerts disabled</li>
+                    <li>Associated images and notes deleted</li>
+                `;
+        }
+
+        // Event listeners for modal
+        document.getElementById('openDeleteModal').addEventListener('click', showModal);
+        document.getElementById('closeModal').addEventListener('click', hideModal);
+        document.getElementById('cancelBtn').addEventListener('click', hideModal);
+        document.getElementById('closeSuccessBtn').addEventListener('click', function () {
+            hideModal();
+            // Optionally refresh the page to update the dashboard
+            location.reload();
+        });
+        document.getElementById('modalOverlay').addEventListener('click', hideModal);
+
+        // Prevent modal content clicks from closing modal
+        mainDeleteModal.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        successModal.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        // Handle escape key
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
+                hideModal();
+            }
+        });
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function () {
             console.log('Plant Health Dashboard loaded successfully!');
         });
     </script>

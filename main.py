@@ -1,26 +1,30 @@
-﻿from fastapi import FastAPI, Depends, Request, Query, Body
-from fastapi import File, UploadFile, Form
-from fastapi.responses import HTMLResponse
+﻿# Standard library imports
+from datetime import datetime
+from pathlib import Path
+import pickle
+import time
+
+# Third-party imports
+import pandas as pd
+import pytz
+from fastapi import (
+    Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
+)
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from jose import JWTError, jwt
 from pydantic import BaseModel
-from datetime import datetime
-import pytz
-import pickle
-import pandas as pd
-from pathlib import Path
-from database.models import CurrentSensorData, User, Plant
+from sqlalchemy import desc
+from sqlalchemy.orm import Session
+from typing import List
+
+# Local application imports
 from database.database import get_db
+from database.models import CurrentSensorData, Plant, User
+from login.auth import ALGORITHM, SECRET_KEY
 from login.login_routes import router as auth_router
-from fastapi.responses import RedirectResponse
-from login.auth import SECRET_KEY, ALGORITHM
-from jose import jwt, JWTError
-from plot import light_intensity
-from plot import temp_humidity
-from plot import soil_moisture
-import time
+from plot import light_intensity, soil_moisture, temp_humidity
 
 app = FastAPI()
 
@@ -53,6 +57,81 @@ templates = Jinja2Templates(directory="templates")
 class PlantCreate(BaseModel):
     esp_id: str
     nickname: str = None
+
+class DeletePlantsRequest(BaseModel):
+    esp_ids: List[str]
+
+@app.get("/plants/list")
+def list_user_plants(request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("access_token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise ValueError
+    except (JWTError, ValueError):
+        return RedirectResponse("/auth/login", status_code=302)
+
+    user = db.query(User).filter_by(username=username).first()
+    if not user:
+        return {"error": "User not found"}
+
+    plants = db.query(Plant).filter_by(user_id=user.id).all()
+    results = []
+
+    for plant in plants:
+        latest = (
+            db.query(CurrentSensorData)
+            .filter(CurrentSensorData.esp_id == plant.esp_id)
+            .order_by(CurrentSensorData.timestamp.desc())
+            .first()
+        )
+
+        if not latest:
+            continue
+
+        input_data = pd.DataFrame([{
+            "temperature": latest.temperature,
+            "humidity": latest.humidity,
+            "light_lux": latest.light_lux,
+            "soil_moisture": latest.soil_moisture
+        }])
+        input_data = input_data.reindex(columns=feature_columns, fill_value=0)
+
+        prediction = model.predict(input_data)[0]
+        confidence = round(model.predict_proba(input_data)[0][prediction] * 100, 2)
+
+        results.append({
+            "id": plant.id,
+            "name": plant.nickname,
+            "esp_id": plant.esp_id,
+            "health": confidence
+        })
+
+    return {"plants": results}
+
+@app.delete("/plants/delete/{plant_id}")
+def delete_plant_by_id(plant_id: int, request: Request, db: Session = Depends(get_db)):
+    token = request.cookies.get("access_token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise ValueError
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    user = db.query(User).filter_by(username=username).first()
+    plant = db.query(Plant).filter_by(id=plant_id, user_id=user.id).first()
+    if not plant:
+        raise HTTPException(status_code=404, detail="Plant not found")
+
+    # Optional: Also delete associated sensor data
+    db.query(CurrentSensorData).filter_by(esp_id=plant.esp_id).delete()
+
+    db.delete(plant)
+    db.commit()
+    return {"message": "Plant deleted successfully"}
 
 @app.post("/plants/submit")
 async def submit_new_plant(
