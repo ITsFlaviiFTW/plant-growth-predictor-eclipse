@@ -126,9 +126,6 @@ def delete_plant_by_id(plant_id: int, request: Request, db: Session = Depends(ge
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
 
-    # Optional: Also delete associated sensor data
-    db.query(CurrentSensorData).filter_by(esp_id=plant.esp_id).delete()
-
     db.delete(plant)
     db.commit()
     return {"message": "Plant deleted successfully"}
