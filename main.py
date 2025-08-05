@@ -1,4 +1,5 @@
 ﻿from fastapi import FastAPI, Depends, Request, Query, Body
+from fastapi import File, UploadFile, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -10,11 +11,8 @@ import pytz
 import pickle
 import pandas as pd
 from pathlib import Path
-from database.models import CurrentSensorData
+from database.models import CurrentSensorData, User, Plant
 from database.database import get_db
-from ml.preprocess_kaggle_data import bin_temperature, bin_humidity, bin_light, bin_soil
-from ml.recommendations import suggest
-from ml.t5_predict import generate_suggestion
 from login.login_routes import router as auth_router
 from fastapi.responses import RedirectResponse
 from login.auth import SECRET_KEY, ALGORITHM
@@ -22,8 +20,10 @@ from jose import jwt, JWTError
 from plot import light_intensity
 from plot import temp_humidity
 from plot import soil_moisture
+import time
 
 app = FastAPI()
+
 app.include_router(auth_router)
 app.include_router(light_intensity.router)
 app.include_router(temp_humidity.router)
@@ -50,6 +50,84 @@ if isinstance(model, (pd.DataFrame, pd.Series, list, tuple, str, bytes, int, flo
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+class PlantCreate(BaseModel):
+    esp_id: str
+    nickname: str = None
+
+@app.post("/plants/submit")
+async def submit_new_plant(
+    request: Request,
+    plantName: str = Form(...),
+    espId: str = Form(...),
+    useCustomRanges: str = Form(...),
+    tempMin: int = Form(...),
+    tempMax: int = Form(...),
+    humidityMin: int = Form(...),
+    humidityMax: int = Form(...),
+    soilMin: int = Form(...),
+    soilMax: int = Form(...),
+    lightMin: int = Form(...),
+    lightMax: int = Form(...),
+    plantImage: UploadFile = File(None),
+    db: Session = Depends(get_db)
+):
+    # Auth check
+    token = request.cookies.get("access_token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise ValueError
+    except (JWTError, ValueError):
+        return RedirectResponse("/auth/login", status_code=302)
+
+    user = db.query(User).filter_by(username=username).first()
+    if not user:
+        return {"error": "User not found"}
+
+    # Prevent duplicate
+    exists = db.query(Plant).filter_by(esp_id=espId, user_id=user.id).first()
+    if exists:
+        return {"error": "You already added this plant"}
+
+    # Save image if present
+    image_path = f"/static/plant-images/{espId}.png"
+    if plantImage:
+        with open(f"static/plant-images/{espId}.png", "wb") as f:
+            f.write(await plantImage.read())
+    else:
+        image_path = "/static/plant-images/default.png"  # fallback image
+
+    # Create new plant
+    new_plant = Plant(
+        user_id=user.id,
+        esp_id=espId,
+        nickname=plantName,
+        temp_min=tempMin,
+        temp_max=tempMax,
+        humidity_min=humidityMin,
+        humidity_max=humidityMax,
+        soil_min=soilMin,
+        soil_max=soilMax,
+        light_min=lightMin,
+        light_max=lightMax,
+        image_path=image_path
+    )
+    db.add(new_plant)
+    db.commit()
+    return {"message": "Plant added successfully"}
+
+@app.get("/plants/add", response_class=HTMLResponse)
+def serve_add_plant_form(request: Request):
+    token = request.cookies.get("access_token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if not payload.get("sub"):
+            raise ValueError
+    except (JWTError, ValueError):
+        return RedirectResponse("/auth/login")
+    return templates.TemplateResponse("add-plant.html", {"request": request})
+
 # Incoming sensor data schema
 class SensorData(BaseModel):
     esp_id: str
@@ -63,6 +141,10 @@ class SensorData(BaseModel):
 # POST: sensor update
 @app.post("/sensor/update")
 def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
+    # Check if esp_id is assigned to a plant
+    from database.models import Plant
+    if not db.query(Plant).filter_by(esp_id=data.esp_id).first():
+        return {"error": "ESP32 not registered. Please add the plant first."}
     entry = CurrentSensorData(
         esp_id=data.esp_id,
         timestamp=datetime.utcnow(),
@@ -77,9 +159,8 @@ def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success"}
 
-# GET: prediction API
-@app.get("/predict/{esp_id}")
-def predict_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
+@app.get("/evaluate/{esp_id}")
+def evaluate_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
     latest = (
         db.query(CurrentSensorData)
         .filter(CurrentSensorData.esp_id == esp_id)
@@ -90,23 +171,37 @@ def predict_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
     if not latest:
         return {"error": "No data found for ESP ID."}
 
-    binned = {
-        "temp_bin": bin_temperature(latest.temperature),
-        "humidity_bin": bin_humidity(latest.humidity),
-        "light_bin": bin_light(latest.light_lux),
-        "moisture_bin": bin_soil(latest.soil_moisture),
-    }
+    # Prepare raw input
+    input_data = pd.DataFrame([{
+        "temperature": latest.temperature,
+        "humidity": latest.humidity,
+        "light_lux": latest.light_lux,
+        "soil_moisture": latest.soil_moisture
+    }])
+    input_data = input_data.reindex(columns=feature_columns, fill_value=0)
 
-    X = pd.get_dummies(pd.DataFrame([binned]))
-    X = X.reindex(columns=feature_columns, fill_value=0)
-
-    prediction = model.predict(X)[0]
+    # Prediction
+    prediction = model.predict(input_data)[0]
     label = label_encoder.inverse_transform([prediction])[0]
-    confidence = round(model.predict_proba(X)[0][prediction] * 100, 2)
+    confidence = round(model.predict_proba(input_data)[0][prediction] * 100, 2)
 
-    importances = model.feature_importances_
-    importance_dict = dict(zip(X.columns, importances))
-    sorted_importance = sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
+    # Feature importance
+    importances = dict(zip(feature_columns, model.feature_importances_))
+    sorted_importance = sorted(importances.items(), key=lambda x: x[1], reverse=True)
+    top_factors = [f[0] for f in sorted_importance[:2]]
+    top_factors_readable = ', '.join(f.replace('_', ' ').title() for f in top_factors)
+
+    # AI suggestion
+    suggestion = None
+    if label.lower() != "healthy":
+        from ml.t5_predict import generate_suggestion
+        prompt = (
+            f"temperature={latest.temperature}, "
+            f"humidity={latest.humidity}, "
+            f"light_lux={latest.light_lux}, "
+            f"soil_moisture={latest.soil_moisture}"
+        )
+        suggestion = generate_suggestion(prompt)
 
     return {
         "esp_id": esp_id,
@@ -122,56 +217,13 @@ def predict_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
         "feature_importance": [
             [feature, float(importance)] for feature, importance in sorted_importance
         ],
-    }
-def explain_prediction(binned, importances):
-    feature_map = {
-        "temp_bin": "temperature",
-        "humidity_bin": "humidity",
-        "moisture_bin": "soil moisture",
-        "light_bin": "light level"
-    }
-
-    # Sort features by importance
-    sorted_features = sorted(importances.items(), key=lambda x: x[1], reverse=True)
-    top_features = [f for f, _ in sorted_features[:2]]
-
-    explanations = []
-    for f in top_features:
-        bin_value = binned.get(f)
-        readable = f"{feature_map.get(f)} is {bin_value}"
-        explanations.append(readable)
-
-    return "Health status primarily influenced because " + " and ".join(explanations) + "."
-
-# Suggestion route
-@app.get("/suggestion/{esp_id}")
-def suggestion_for_esp(esp_id: str, db: Session = Depends(get_db)):
-    latest = (
-        db.query(CurrentSensorData)
-        .filter(CurrentSensorData.esp_id == esp_id)
-        .order_by(CurrentSensorData.timestamp.desc())
-        .first()
-    )
-
-    if not latest:
-        return {"error": "No data for ESP ID."}
-
-    prompt = f"temperature={latest.temperature}, humidity={latest.humidity}, light_lux={latest.light_lux}, soil_moisture={latest.soil_moisture}"
-    suggestion = generate_suggestion(prompt)
-
-    return {
-        "esp_id": esp_id,
-        "prompt": prompt,
         "suggestion": suggestion
     }
 
-# Custom suggestion route
-@app.post("/custom-suggestion")
-def custom_suggestion(data: dict = Body(...)):
-    from ml.suggestion_model import generate_suggestion
-    prompt = data.get("prompt", "")
-    suggestion = generate_suggestion(prompt)
-    return {"prompt": prompt, "suggestion": suggestion}
+@app.get("/plants/check-esp/{esp_id}")
+def check_esp(esp_id: str, db: Session = Depends(get_db)):
+    exists = db.query(CurrentSensorData).filter(CurrentSensorData.esp_id == esp_id).first() is not None
+    return {"exists": exists}
 
 # GET: live dashboard
 @app.get("/", response_class=HTMLResponse)
@@ -192,14 +244,16 @@ def dashboard(
     except (JWTError, ValueError):
         return RedirectResponse("/auth/login")
 
-    # Same existing dashboard logic below
-    esp_ids = [row.esp_id for row in db.query(CurrentSensorData.esp_id).distinct().all()]
+    user = db.query(User).filter_by(username=username).first()
+    esp_ids = [plant.esp_id for plant in user.plants]
+    plant = db.query(Plant).filter_by(esp_id=esp_id, user_id=user.id).first()
 
+    # If no plants added, render empty state
+    if not esp_ids:
+        return templates.TemplateResponse("empty-dashboard.html", {"request": request})
+    
     if not esp_id:
-        first = db.query(CurrentSensorData.esp_id).order_by(CurrentSensorData.timestamp.desc()).first()
-        if not first:
-            return HTMLResponse("<h2>No sensor data available.</h2>")
-        esp_id = first.esp_id
+        esp_id = esp_ids[0]
 
     latest = (
         db.query(CurrentSensorData)
@@ -211,31 +265,52 @@ def dashboard(
     if not latest:
         return HTMLResponse(f"<h2>No data for {esp_id}</h2>")
 
+    # Start timing
+    start = time.perf_counter()
+
+    input_data = pd.DataFrame([{
+    "temperature": latest.temperature,
+    "humidity": latest.humidity,
+    "light_lux": latest.light_lux,
+    "soil_moisture": latest.soil_moisture
+    }])
+    input_data = input_data.reindex(columns=feature_columns, fill_value=0)
+
+    prediction = model.predict(input_data)[0]
+    label = label_encoder.inverse_transform([prediction])[0]
+    confidence = round(model.predict_proba(input_data)[0][prediction] * 100, 2)
+    importances = dict(zip(feature_columns, model.feature_importances_))
+    sorted_importance = sorted(importances.items(), key=lambda x: x[1], reverse=True)
+
+    top_factors = [f[0] for f in sorted_importance[:2]]
+    top_factors_readable = ', '.join(f.replace('_', ' ').title() for f in top_factors)
+
+    suggestion = None
+    if label.lower() != "healthy":
+        from ml.t5_predict import generate_suggestion
+        prompt = (
+            f"temperature={latest.temperature}, "
+            f"humidity={latest.humidity}, "
+            f"light_lux={latest.light_lux}, "
+            f"soil_moisture={latest.soil_moisture}"
+        )
+        suggestion = generate_suggestion(prompt)
+
+    # End timing
+    duration_ms = round((time.perf_counter() - start) * 1000, 1)
+
     eastern = pytz.timezone("America/Toronto")
     local_time = latest.timestamp.replace(tzinfo=pytz.utc).astimezone(eastern)
 
-    binned = {
-        "temp_bin": bin_temperature(latest.temperature),
-        "humidity_bin": bin_humidity(latest.humidity),
-        "light_bin": bin_light(latest.light_lux),
-        "moisture_bin": bin_soil(latest.soil_moisture),
-    }
-
-    X = pd.get_dummies(pd.DataFrame([binned]))
-    X = X.reindex(columns=feature_columns, fill_value=0)
-
-    prediction = model.predict(X)[0]
-    label = label_encoder.inverse_transform([prediction])[0]
-    confidence = round(model.predict_proba(X)[0][prediction] * 100, 2)
-    importances = dict(zip(X.columns, model.feature_importances_))
-    explanation = explain_prediction(binned, importances)
-
     return templates.TemplateResponse("dashboard.html", {
-        "request": request,
-        "latest": latest,
-        "esp_ids": esp_ids,
-        "esp_id": latest.esp_id,
-        "predicted_health": label,
-        "confidence": confidence,
-        "explanation": explanation
-    })
+    "request": request,
+    "latest": latest,
+    "esp_ids": esp_ids,
+    "esp_id": latest.esp_id,
+    "predicted_health": label,
+    "confidence": confidence,
+    "suggestion": suggestion,
+    "influencers": top_factors_readable,
+    "inference_time": duration_ms,
+    "plant": plant
+})

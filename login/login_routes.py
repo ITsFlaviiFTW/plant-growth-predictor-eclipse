@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Request, Form, Response
+from fastapi import APIRouter, Depends, Request, Form, Response, Query
 from fastapi.responses import RedirectResponse, HTMLResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
@@ -154,3 +154,12 @@ def logout():
     response = RedirectResponse(url="/auth/login", status_code=302)
     response.delete_cookie("access_token")
     return response
+
+# --------------- AUTHENTICATE --------------
+@router.get("/reset-token/validate")
+def validate_reset_token(token: str = Query(...)):
+    try:
+        email = serializer.loads(token, salt="reset-salt", max_age=3600)
+        return {"valid": True, "email": email}
+    except (SignatureExpired, BadSignature):
+        return {"valid": False}

@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add New Plant - Plant Health Monitor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .form-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
+
+        .plant-animation {
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        @keyframes sway {
+            0%, 100% {
+                transform: rotate(-2deg);
+            }
+
+            50% {
+                transform: rotate(2deg);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-animation {
+            animation: bounceIn 0.6s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% {
+                transform: scale(0.3);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05);
+            }
+
+            70% {
+                transform: scale(0.9);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            display: inline-block;
+            vertical-align: middle;
+        }
+
+        .icon-lg {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+
+        .icon-xl {
+            width: 2rem;
+            height: 2rem;
+        }
+
+        /* Custom file upload styling */
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            cursor: pointer;
+        }
+
+            .file-upload input[type=file] {
+                position: absolute;
+                left: -9999px;
+            }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: rgba(255, 255, 255, 0.5);
+            }
+    </style>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-100">
+    <!-- Background Pattern -->
+    <div class="absolute inset-0 opacity-5 -z-10">
+        <div class="absolute top-10 left-10 text-6xl plant-animation">🌱</div>
+        <div class="absolute top-32 right-20 text-4xl plant-animation" style="animation-delay: 1s;">🌿</div>
+        <div class="absolute bottom-20 left-20 text-5xl plant-animation" style="animation-delay: 2s;">🍃</div>
+        <div class="absolute bottom-32 right-10 text-3xl plant-animation" style="animation-delay: 0.5s;">🌾</div>
+    </div>
+
+    <div class="max-w-4xl mx-auto p-6">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-white mb-1">Add New Plant</h1>
+                <p class="text-gray-400 text-sm">Set up monitoring for a new plant in your garden</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <a href="/" class="flex items-center gap-2 px-4 py-2.5 border border-gray-600 rounded-lg hover:bg-gray-800 transition-all duration-200 text-gray-300 hover:text-white">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                    </svg>
+                    Back to Dashboard
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Form -->
+        <form id="addPlantForm" enctype="multipart/form-data">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Form Section -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Basic Information -->
+                    <div class="form-card rounded-xl shadow-2xl p-8">
+                        <div class="flex items-center gap-3 mb-6">
+                            <div class="p-3 bg-emerald-500/20 rounded-full">
+                                <svg class="icon-lg text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                            </div>
+                            <h2 class="text-xl font-bold text-white">Basic Information</h2>
+                        </div>
+
+                        <div class="space-y-6">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- Plant Name -->
+                                <div>
+                                    <label for="plantName" class="block text-sm font-semibold text-gray-200 mb-2">
+                                        Plant Name *
+                                    </label>
+                                    <input type="text"
+                                           id="plantName"
+                                           name="plantName"
+                                           required
+                                           class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white placeholder-gray-400"
+                                           placeholder="e.g., My Tomato Plant">
+                                </div>
+                            </div>
+
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- ESP32 Device ID -->
+                                <div>
+                                    <label for="espId" class="block text-sm font-semibold text-gray-200 mb-2">
+                                        ESP32 Device ID *
+                                    </label>
+                                    <input type="text"
+                                           id="espId"
+                                           name="espId"
+                                           required
+                                           class="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white placeholder-gray-400 font-mono"
+                                           placeholder="e.g., ESP32_001">
+                                    <p class="text-xs text-gray-500 mt-1">Unique identifier for your ESP32 sensor device</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Optimal Ranges -->
+                    <div class="form-card rounded-xl shadow-2xl p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <div class="flex items-center gap-3">
+                                <div class="p-3 bg-blue-500/20 rounded-full">
+                                    <svg class="icon-lg text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-xl font-bold text-white">Optimal Ranges</h2>
+                                    <p class="text-sm text-gray-400">Set target values for monitoring alerts</p>
+                                </div>
+                            </div>
+
+                            <!-- Toggle Switch -->
+                            <div class="flex items-center gap-3">
+                                <span class="text-sm text-gray-400 font-medium" id="toggleLabel">Use defaults</span>
+                                <button type="button" id="rangeToggle" class="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-600 transition-colors focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:ring-offset-gray-800">
+                                    <span class="sr-only">Toggle optimal ranges</span>
+                                    <span id="toggleSlider" class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"></span>
+                                </button>
+                                <span class="text-sm text-emerald-400 font-medium" id="customLabel" style="opacity: 0.5;">Customize</span>
+                            </div>
+                        </div>
+
+                        <!-- Default Ranges Display -->
+                        <div id="defaultRanges" class="space-y-4">
+                            <div class="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
+                                <h3 class="text-sm font-semibold text-gray-300 mb-3">Default Optimal Ranges</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                    <div class="text-center">
+                                        <div class="text-orange-400 font-medium">Temperature</div>
+                                        <div class="text-gray-300" id="defaultTemp">18°C - 26°C</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-blue-400 font-medium">Humidity</div>
+                                        <div class="text-gray-300" id="defaultHumidity">60% - 80%</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-emerald-400 font-medium">Soil Moisture</div>
+                                        <div class="text-gray-300" id="defaultSoil">65% - 85%</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-yellow-400 font-medium">Light</div>
+                                        <div class="text-gray-300" id="defaultLight">800 - 1200 lux</div>
+                                    </div>
+                                </div>
+                                <div class="mt-3 text-xs text-gray-500 text-center">
+                                    These ranges work well for most common plants. Toggle to customize for specific needs.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Custom Ranges Form -->
+                        <div id="customRanges" class="hidden">
+                            <div class="grid md:grid-cols-2 gap-6">
+                                <!-- Temperature Range -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-200 mb-3">
+                                        Temperature Range (°C)
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="number"
+                                               id="tempMin"
+                                               name="tempMin"
+                                               min="0"
+                                               max="50"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Min"
+                                               value="18">
+                                        <span class="text-gray-400">to</span>
+                                        <input type="number"
+                                               id="tempMax"
+                                               name="tempMax"
+                                               min="0"
+                                               max="50"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Max"
+                                               value="26">
+                                    </div>
+                                </div>
+
+                                <!-- Humidity Range -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-200 mb-3">
+                                        Humidity Range (%)
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="number"
+                                               id="humidityMin"
+                                               name="humidityMin"
+                                               min="0"
+                                               max="100"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Min"
+                                               value="60">
+                                        <span class="text-gray-400">to</span>
+                                        <input type="number"
+                                               id="humidityMax"
+                                               name="humidityMax"
+                                               min="0"
+                                               max="100"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Max"
+                                               value="80">
+                                    </div>
+                                </div>
+
+                                <!-- Soil Moisture Range -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-200 mb-3">
+                                        Soil Moisture Range (%)
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="number"
+                                               id="soilMin"
+                                               name="soilMin"
+                                               min="0"
+                                               max="100"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Min"
+                                               value="65">
+                                        <span class="text-gray-400">to</span>
+                                        <input type="number"
+                                               id="soilMax"
+                                               name="soilMax"
+                                               min="0"
+                                               max="100"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Max"
+                                               value="85">
+                                    </div>
+                                </div>
+
+                                <!-- Light Range -->
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-200 mb-3">
+                                        Light Range (lux)
+                                    </label>
+                                    <div class="flex items-center gap-3">
+                                        <input type="number"
+                                               id="lightMin"
+                                               name="lightMin"
+                                               min="0"
+                                               max="10000"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Min"
+                                               value="800">
+                                        <span class="text-gray-400">to</span>
+                                        <input type="number"
+                                               id="lightMax"
+                                               name="lightMax"
+                                               min="0"
+                                               max="10000"
+                                               class="flex-1 px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all text-white"
+                                               placeholder="Max"
+                                               value="1200">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Section -->
+                <div class="space-y-6">
+                    <!-- Plant Preview -->
+                    <div class="form-card rounded-xl shadow-2xl p-6">
+                        <h3 class="text-lg font-bold text-white mb-4">Plant Preview</h3>
+                        <div class="text-center space-y-4">
+                            <!-- Plant Image Upload -->
+                            <div class="relative">
+                                <div id="imagePreview" class="w-32 h-32 mx-auto bg-gray-700 rounded-full flex items-center justify-center border-2 border-dashed border-gray-600 hover:border-emerald-500 transition-all cursor-pointer group">
+                                    <div id="defaultIcon" class="text-4xl text-gray-400 group-hover:text-emerald-400 transition-colors">🌱</div>
+                                    <img id="uploadedImage" class="hidden w-full h-full object-cover rounded-full" alt="Plant preview">
+                                </div>
+                                <label for="plantImage" class="file-upload absolute bottom-0 right-0 bg-emerald-500 hover:bg-emerald-600 text-white p-2 rounded-full cursor-pointer transition-all shadow-lg">
+                                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                    </svg>
+                                    <input type="file" id="plantImage" name="plantImage" accept="image/*" class="hidden">
+                                </label>
+                            </div>
+                            <div>
+                                <h4 id="previewName" class="font-bold text-white text-lg">Plant Name</h4>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Tips -->
+                    <div class="form-card rounded-xl shadow-2xl p-6">
+                        <h3 class="text-lg font-bold text-white mb-4">Setup Tips</h3>
+                        <div class="space-y-3 text-sm">
+                            <div class="flex items-start gap-3">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p class="text-gray-300">Make sure your ESP32 device is connected and powered on</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p class="text-gray-300">Place sensors at appropriate depths in the soil</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p class="text-gray-300">Test the connection before finalizing setup</p>
+                            </div>
+                            <div class="flex items-start gap-3">
+                                <div class="w-2 h-2 bg-emerald-400 rounded-full mt-2 flex-shrink-0"></div>
+                                <p class="text-gray-300">Adjust optimal ranges based on plant species</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="col-span-1 lg:col-span-3 flex items-center justify-between pt-6 border-t border-gray-700 mt-8">
+                <button type="button" id="testConnectionBtn"
+                        class="flex items-center gap-2 px-6 py-3 border border-blue-500 text-blue-400 rounded-lg hover:bg-blue-500/10 transition-all duration-200">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"></path>
+                    </svg>
+                    Test Connection
+                </button>
+                <div class="flex items-center gap-4">
+                    <button type="button" onclick="window.location.href='/'"
+                            class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-all duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit" id="addPlantBtn"
+                            class="flex items-center gap-2 px-8 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 shadow-lg hover:shadow-emerald-500/25 transform hover:scale-105">
+                        <span id="addPlantText">Add Plant</span>
+                        <svg id="addPlantSpinner" class="hidden animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor"
+                                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Success State -->
+        <div id="successState" class="hidden text-center space-y-6">
+            <div class="success-animation">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-500/20 rounded-full mb-6">
+                    <svg class="icon-xl text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h2 class="text-3xl font-bold text-white mb-2">Plant Added Successfully!</h2>
+                <p class="text-gray-400 mb-6">Your new plant is now being monitored</p>
+            </div>
+
+            <div class="glass-card rounded-xl p-8 max-w-md mx-auto">
+                <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 mb-6">
+                    <div class="flex items-start gap-3">
+                        <svg class="icon text-emerald-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm text-emerald-300">
+                            <p class="font-medium mb-1">Setup complete:</p>
+                            <ul class="list-disc list-inside space-y-1 text-emerald-400">
+                                <li>Plant profile created</li>
+                                <li>Sensor connection established</li>
+                                <li>Monitoring alerts configured</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-4">
+                    <a href="/" class="w-full flex justify-center items-center py-3 px-4 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg hover:from-emerald-600 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105">
+                        View Dashboard
+                    </a>
+                    <button onclick="location.reload()" class="w-full flex justify-center items-center py-2 px-4 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 transition-all duration-200">
+                        Add Another Plant
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Toggle functionality for optimal ranges
+        let useCustomRanges = false;
+
+        // Default ranges based on plant type
+        const plantDefaults = {
+            other: { temp: [18, 26], humidity: [60, 80], soil: [65, 85], light: [800, 1200] }
+            // More plant types may be added in the future
+        };
+
+        function updateDefaultRanges() {
+            const defaults = plantDefaults["other"];
+
+            document.getElementById('defaultTemp').textContent = `${defaults.temp[0]}°C - ${defaults.temp[1]}°C`;
+            document.getElementById('defaultHumidity').textContent = `${defaults.humidity[0]}% - ${defaults.humidity[1]}%`;
+            document.getElementById('defaultSoil').textContent = `${defaults.soil[0]}% - ${defaults.soil[1]}%`;
+            document.getElementById('defaultLight').textContent = `${defaults.light[0]} - ${defaults.light[1]} lux`;
+        }
+
+        function toggleOptimalRanges() {
+            useCustomRanges = !useCustomRanges;
+
+            const toggle = document.getElementById('rangeToggle');
+            const slider = document.getElementById('toggleSlider');
+            const defaultRanges = document.getElementById('defaultRanges');
+            const customRanges = document.getElementById('customRanges');
+            const toggleLabel = document.getElementById('toggleLabel');
+            const customLabel = document.getElementById('customLabel');
+
+            if (useCustomRanges) {
+                // Switch to custom mode
+                toggle.classList.remove('bg-gray-600');
+                toggle.classList.add('bg-emerald-500');
+                slider.classList.remove('translate-x-1');
+                slider.classList.add('translate-x-6');
+
+                defaultRanges.classList.add('hidden');
+                customRanges.classList.remove('hidden');
+                customRanges.classList.add('fade-in');
+
+                toggleLabel.style.opacity = '0.5';
+                customLabel.style.opacity = '1';
+                customLabel.classList.add('font-semibold');
+                toggleLabel.classList.remove('font-semibold');
+
+                // Populate custom fields with current defaults
+                const defaults = plantDefaults["other"];
+
+                document.getElementById('tempMin').value = defaults.temp[0];
+                document.getElementById('tempMax').value = defaults.temp[1];
+                document.getElementById('humidityMin').value = defaults.humidity[0];
+                document.getElementById('humidityMax').value = defaults.humidity[1];
+                document.getElementById('soilMin').value = defaults.soil[0];
+                document.getElementById('soilMax').value = defaults.soil[1];
+                document.getElementById('lightMin').value = defaults.light[0];
+                document.getElementById('lightMax').value = defaults.light[1];
+
+            } else {
+                // Switch to default mode
+                toggle.classList.remove('bg-emerald-500');
+                toggle.classList.add('bg-gray-600');
+                slider.classList.remove('translate-x-6');
+                slider.classList.add('translate-x-1');
+
+                customRanges.classList.add('hidden');
+                defaultRanges.classList.remove('hidden');
+                defaultRanges.classList.add('fade-in');
+
+                toggleLabel.style.opacity = '1';
+                customLabel.style.opacity = '0.5';
+                toggleLabel.classList.add('font-semibold');
+                customLabel.classList.remove('font-semibold');
+            }
+        }
+
+        // Form preview updates
+        function updatePreview() {
+            const name = document.getElementById('plantName').value || 'Plant Name';
+            document.getElementById('previewName').textContent = name;
+        }
+
+        // Image upload preview
+        document.getElementById('plantImage').addEventListener('change', function (e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    document.getElementById('uploadedImage').src = e.target.result;
+                    document.getElementById('uploadedImage').classList.remove('hidden');
+                    document.getElementById('defaultIcon').classList.add('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // Test connection functionality
+        document.getElementById('testConnectionBtn').addEventListener('click', function () {
+            const espId = document.getElementById('espId').value;
+            if (!espId) {
+                alert('Please enter an ESP32 Device ID first');
+                return;
+            }
+
+            const btn = this;
+            const originalText = btn.innerHTML;
+
+            btn.innerHTML = `
+                    <svg class="icon animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Testing...
+                `;
+            btn.disabled = true;
+
+            fetch(`/plants/check-esp/${espId}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.exists) {
+                        btn.innerHTML = `
+                        <svg class="icon text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Connected!`;
+                        btn.classList.remove("text-blue-400", "border-blue-500");
+                        btn.classList.add("text-emerald-400", "border-emerald-500");
+                    } else {
+                        alert("No data received from this ESP32 yet.");
+                        btn.innerHTML = originalText;
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    alert("Connection test failed. Try again.");
+                    btn.innerHTML = originalText;
+                })
+                .finally(() => {
+                    btn.disabled = false;
+                });
+        });
+
+        // Form submission (updated to handle optimal ranges)
+        document.getElementById('addPlantForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Collect form data including optimal ranges
+            const formData = new FormData(this);
+
+            // Add optimal ranges data
+            if (useCustomRanges) {
+                formData.append('useCustomRanges', 'true');
+                formData.append('tempMin', document.getElementById('tempMin').value);
+                formData.append('tempMax', document.getElementById('tempMax').value);
+                formData.append('humidityMin', document.getElementById('humidityMin').value);
+                formData.append('humidityMax', document.getElementById('humidityMax').value);
+                formData.append('soilMin', document.getElementById('soilMin').value);
+                formData.append('soilMax', document.getElementById('soilMax').value);
+                formData.append('lightMin', document.getElementById('lightMin').value);
+                formData.append('lightMax', document.getElementById('lightMax').value);
+            } else {
+                formData.append('useCustomRanges', 'false');
+                const defaults = plantDefaults["other"];
+                formData.append('tempMin', defaults.temp[0]);
+                formData.append('tempMax', defaults.temp[1]);
+                formData.append('humidityMin', defaults.humidity[0]);
+                formData.append('humidityMax', defaults.humidity[1]);
+                formData.append('soilMin', defaults.soil[0]);
+                formData.append('soilMax', defaults.soil[1]);
+                formData.append('lightMin', defaults.light[0]);
+                formData.append('lightMax', defaults.light[1]);
+            }
+
+            const addBtn = document.getElementById('addPlantBtn');
+            const addText = document.getElementById('addPlantText');
+            const addSpinner = document.getElementById('addPlantSpinner');
+
+            // Show loading state
+            addText.textContent = 'Adding Plant...';
+            addSpinner.classList.remove('hidden');
+            addBtn.disabled = true;
+
+            // Form submission
+            fetch("/plants/submit", {
+                method: "POST",
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message === "Plant added successfully") {
+                        document.getElementById('addPlantForm').classList.add('hidden');
+                        document.getElementById('successState').classList.remove('hidden');
+                        document.getElementById('successState').classList.add('fade-in');
+                    } else {
+                        alert(data.error || "Something went wrong.");
+                    }
+                })
+                .catch(err => {
+                    console.error("Submission failed:", err);
+                    alert("Failed to add plant. Try again.");
+                })
+                .finally(() => {
+                    addText.textContent = 'Add Plant';
+                    addSpinner.classList.add('hidden');
+                    addBtn.disabled = false;
+                });
+        });
+
+        // Initialize toggle functionality
+        document.getElementById('rangeToggle').addEventListener('click', toggleOptimalRanges);
+
+        // Real-time preview updates
+        document.addEventListener('DOMContentLoaded', function () {
+            const inputs = ['plantName'];
+            inputs.forEach(id => {
+                document.getElementById(id).addEventListener('input', updatePreview);
+            });
+
+            // Add focus effects to form inputs
+            const formInputs = document.querySelectorAll('input, select, textarea');
+            formInputs.forEach(input => {
+                input.addEventListener('focus', function () {
+                    this.classList.add('ring-2', 'ring-emerald-500');
+                });
+
+                input.addEventListener('blur', function () {
+                    this.classList.remove('ring-2', 'ring-emerald-500');
+                });
+            });
+
+            // Initialize default ranges on page load
+            updateDefaultRanges();
+
+            console.log('Add Plant form loaded successfully!');
+        });
+    </script>
+</body>
+</html>

@@ -1,37 +1,72 @@
+# ml/train_model.py
+
 import pandas as pd
-from xgboost import XGBClassifier
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder
-from sklearn.metrics import classification_report
 import pickle
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import train_test_split
 
-# Load processed dataset
-df = pd.read_csv("ml/plant_health_data_processed.csv")
+# Load and inspect
+df = pd.read_csv("ml/plant_health_data.csv")
+print("Raw columns:", df.columns.tolist())
 
-# Encode class labels
+# Rename, using original names
+df = df.rename(columns={
+    "Ambient_Temperature": "temperature",
+    "Humidity": "humidity",
+    "Light_Intensity": "light_lux",
+    "Soil_Moisture": "soil_moisture",
+    "Plant_Health_Status": "label"
+})
+
+# Standardize format
+df.columns = df.columns.str.strip().str.lower()
+
+print("Final columns:", df.columns.tolist())
+
+# Filter bad data
+df = df.dropna()
+df = df[
+    (df["temperature"] > -10) & (df["temperature"] < 60) &
+    (df["humidity"] >= 0) & (df["humidity"] <= 100) &
+    (df["light_lux"] >= 0) &
+    (df["soil_moisture"] >= 0) & (df["soil_moisture"] <= 100)
+]
+
+# Map column names to match your live database
+df = df.rename(columns={
+    "light_intensity": "light_lux"
+})
+
+# Label encoding
 label_encoder = LabelEncoder()
-df["health_label"] = label_encoder.fit_transform(df["health_status"])
+df["label"] = label_encoder.fit_transform(df["label"])
 
-# One-hot encode binned features
-X = pd.get_dummies(df[["temp_bin", "humidity_bin", "moisture_bin", "light_bin"]])
-y = df["health_label"]
+# Features and target
+features = ["temperature", "humidity", "light_lux", "soil_moisture"]
+X = df[features]
+y = df["label"]
 
-# Train/test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+# Train/test split (optional)
+X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
 
-# XGBoost model
-model = XGBClassifier(use_label_encoder=False, eval_metric="mlogloss", random_state=42)
-model.fit(X_train, y_train)
+# Model training
+clf = RandomForestClassifier(n_estimators=100, random_state=42)
+clf.fit(X_train, y_train)
 
-# Report
-print(classification_report(y_test, model.predict(X_test), target_names=label_encoder.classes_))
-
-# Save model + encoder
+# Save model, encoder, and feature list
 with open("ml/health_model.pkl", "wb") as f:
-    pickle.dump(model, f)
+    pickle.dump(clf, f)
 
 with open("ml/label_encoder.pkl", "wb") as f:
     pickle.dump(label_encoder, f)
 
 with open("ml/feature_columns.pkl", "wb") as f:
-    pickle.dump(list(X.columns), f)
+    pickle.dump(features, f)
+
+print("Model training complete.")
+print("Training size:", len(X_train))
+print("Class distribution:", df["label"].value_counts())
+print("Feature importances:", clf.feature_importances_)
+print("Train Accuracy:", clf.score(X_train, y_train))
+print("Test Accuracy:", clf.score(X_test, y_test))
