@@ -211,8 +211,6 @@ class SensorData(BaseModel):
     humidity: float
     light_lux: float
     soil_moisture: int
-    distance_mm: int
-    plant_height_mm: int
 
 # POST: sensor update
 @app.post("/sensor/update")
@@ -225,9 +223,7 @@ def update_sensor_data(data: SensorData, db: Session = Depends(get_db)):
         temperature=data.temperature,
         humidity=data.humidity,
         light_lux=data.light_lux,
-        soil_moisture=data.soil_moisture,
-        distance_mm=data.distance_mm,
-        plant_height_mm=data.plant_height_mm
+        soil_moisture=data.soil_moisture
     )
     db.add(entry)
     db.commit()

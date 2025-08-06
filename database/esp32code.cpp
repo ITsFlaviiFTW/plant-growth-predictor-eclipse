@@ -1,75 +1,103 @@
-// This is a copy of the code used in the ESP32 microcontroller
+﻿/*
 
-/*
-
+#include <WiFi.h>
+#include <HTTPClient.h>
 #include <Wire.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <BH1750.h>
-#include <Adafruit_VL53L0X.h>
 
-// === PIN DEFINITIONS ===
+// WiFi credentials
+const char* ssid = "NordVPN7";
+const char* password = "P0s31d0n,02";
+
+// Jetson Nano API endpoint
+const char* serverUrl = "http://10.0.0.212:8000/sensor/update";
+
+// Sensor pins and config
 #define DHTPIN 14
 #define DHTTYPE DHT22
-#define SOIL_PIN 27  // Analog pin for EK1940
-#define SDA_PIN 25
-#define SCL_PIN 33
+#define SOIL_PIN 36  // VP pin = GPIO 36
 
-// === SENSOR OBJECTS ===
 DHT dht(DHTPIN, DHTTYPE);
-BH1750 lightMeter;
-Adafruit_VL53L0X lox = Adafruit_VL53L0X();
+BH1750 bh1750;
 
 void setup() {
     Serial.begin(115200);
+    delay(1000);
 
-    // Setup I2C
-    Wire.begin(SDA_PIN, SCL_PIN);
-
-    // Init sensors
     dht.begin();
+    Wire.begin(25, 33); // SDA = 25, SCL = 33 for ESP32
 
-    if (!lightMeter.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
-        Serial.println("BH1750 not detected. Check wiring.");
+    if (!bh1750.begin(BH1750::CONTINUOUS_HIGH_RES_MODE)) {
+        Serial.println("❌ BH1750 failed to start.");
     }
 
-    if (!lox.begin()) {
-        Serial.println("VL53L0X not detected. Check wiring.");
+    // Connect to WiFi
+    Serial.print("Connecting to WiFi");
+    WiFi.begin(ssid, password);
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
     }
+    Serial.println("\n✅ WiFi connected.");
+    Serial.print("ESP32 IP: ");
+    Serial.println(WiFi.localIP());
 }
 
 void loop() {
-    // === DHT22 ===
-    float temp = dht.readTemperature();
-    float humid = dht.readHumidity();
-    if (isnan(temp) || isnan(humid)) {
-        Serial.println("Failed to read from DHT22");
+    float temperature = dht.readTemperature();
+    float humidity = dht.readHumidity();
+    float lightLux = bh1750.readLightLevel();
+
+    // Soil moisture: raw and mapped
+    int rawSoil = analogRead(SOIL_PIN);
+    int soilPercent = map(rawSoil, 2800, 2200, 0, 100);
+    soilPercent = constrain(soilPercent, 0, 100);
+
+    unsigned long timestamp = millis();
+
+    // Debug print
+    Serial.print("Raw soil: ");
+    Serial.print(rawSoil);
+    Serial.print(" -> ");
+    Serial.print(soilPercent);
+    Serial.println("%");
+
+    // Construct JSON
+    String json = "{";
+    json += "\"esp_id\":\"esp32-1\",";
+    json += "\"timestamp\":" + String(timestamp) + ",";
+    json += "\"temperature\":" + String(temperature, 1) + ",";
+    json += "\"humidity\":" + String(humidity, 1) + ",";
+    json += "\"light_lux\":" + String(lightLux, 1) + ",";
+    json += "\"soil_moisture\":" + String(soilPercent);
+    json += "}";
+
+    Serial.println("Sending: " + json);
+
+    if (WiFi.status() == WL_CONNECTED) {
+        HTTPClient http;
+        http.begin(serverUrl);
+        http.addHeader("Content-Type", "application/json");
+
+        int httpCode = http.POST(json);
+
+        if (httpCode > 0) {
+            Serial.print("✅ Response code: ");
+            Serial.println(httpCode);
+        }
+        else {
+            Serial.print("❌ Failed to send! Code: ");
+            Serial.println(httpCode);
+        }
+
+        http.end();
     }
     else {
-        Serial.print("Temp: "); Serial.print(temp); Serial.print(" �C, ");
-        Serial.print("Humidity: "); Serial.print(humid); Serial.println(" %");
+        Serial.println("❌ WiFi not connected!");
     }
 
-    // === BH1750 ===
-    float lux = lightMeter.readLightLevel();
-    Serial.print("Light: "); Serial.print(lux); Serial.println(" lux");
-
-    // === VL53L0X ===
-    VL53L0X_RangingMeasurementData_t measure;
-    lox.rangingTest(&measure, false);  // pass in 'true' to get debug data
-    if (measure.RangeStatus != 4) {
-        Serial.print("Distance: "); Serial.print(measure.RangeMilliMeter); Serial.println(" mm");
-    }
-    else {
-        Serial.println("Out of range");
-    }
-
-    // === Soil Moisture ===
-    int moisture = analogRead(SOIL_PIN);
-    Serial.print("Soil Moisture (raw ADC): "); Serial.println(moisture);
-
-    Serial.println("--------------------------------------------------");
-    delay(2000);  // Wait 2 seconds between reads
+    delay(2000); // Wait 2 seconds
 }
-
 */

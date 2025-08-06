@@ -118,7 +118,7 @@
             border: 1px solid rgba(16, 185, 129, 0.2);
         }
 
-        /* Delete Modal Styles */
+        /* Modal Styles */
         .modal-overlay {
             background: rgba(0, 0, 0, 0.75);
             backdrop-filter: blur(4px);
@@ -234,6 +234,58 @@
                     transform: scale(1.1);
                 }
 
+        /* Filter specific styles */
+        .filter-item {
+            transition: all 0.3s ease;
+        }
+
+            .filter-item:hover {
+                background: rgba(255, 255, 255, 0.05);
+                transform: translateX(2px);
+            }
+
+            .filter-item.selected {
+                background: rgba(59, 130, 246, 0.1);
+                border-color: #3b82f6;
+            }
+
+                .filter-item.selected .plant-icon {
+                    transform: scale(1.05);
+                }
+
+        /* Filter checkbox styling */
+        .filter-checkbox {
+            appearance: none;
+            width: 1.125rem;
+            height: 1.125rem;
+            border: 2px solid #6b7280;
+            border-radius: 0.25rem;
+            background: transparent;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+            .filter-checkbox:checked {
+                background: #3b82f6;
+                border-color: #3b82f6;
+            }
+
+                .filter-checkbox:checked::after {
+                    content: '✓';
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    color: white;
+                    font-size: 0.75rem;
+                    font-weight: bold;
+                }
+
+            .filter-checkbox:hover {
+                border-color: #3b82f6;
+            }
+
         /* Select all checkbox */
         .select-all-checkbox {
             appearance: none;
@@ -308,6 +360,23 @@
 
             50% {
                 opacity: 0.8;
+            }
+        }
+
+        /* Filter badge animation */
+        .filter-badge {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
             }
         }
 
@@ -423,26 +492,50 @@
                 </div>
                 <!-- Graphs Section -->
                 <div class="glass-card rounded-xl shadow-2xl p-6">
-                    <h2 class="text-2xl font-semibold text-white mb-6">Daily/Weekly Trends</h2>
+                    <!-- Header with Filter Button -->
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-2xl font-semibold text-white">Daily/Weekly Trends</h2>
+                        <button id="openFilterModal" class="flex items-center gap-2 px-4 py-2.5 border border-blue-600 bg-gray-800 text-blue-400 rounded-lg hover:bg-gray-700 hover:border-blue-500 transition-all duration-200">
+                            <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                            </svg>
+                            <span>Filter Plants</span>
+                            <span id="filterBadge" class="hidden filter-badge bg-blue-500 text-white text-xs px-2 py-1 rounded-full font-medium">0</span>
+                        </button>
+                    </div>
+
+                    <!-- Active Filters Display -->
+                    <div id="activeFilters" class="hidden mb-6">
+                        <div class="flex items-center gap-2 mb-3">
+                            <span class="text-sm font-medium text-gray-300">Analyzing data for:</span>
+                            <button id="clearFilters" class="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                                Clear All
+                            </button>
+                        </div>
+                        <div id="filterTags" class="flex flex-wrap gap-2">
+                            <!-- Filter tags will be populated here -->
+                        </div>
+                    </div>
+
                     <div class="space-y-10">
                         <div>
                             <h3 class="text-lg font-medium text-gray-300 mb-2">Light Intensity</h3>
-                            <a href="/plot/light-intensity" target="_blank">
-                                <img src="/plot/light-intensity" alt="Light Intensity Graph"
+                            <a href="/plot/light-intensity" target="_blank" id="lightIntensityLink">
+                                <img src="/plot/light-intensity" alt="Light Intensity Graph" id="lightIntensityImg"
                                      class="rounded-lg shadow-lg w-full cursor-zoom-in hover:opacity-90 transition">
                             </a>
                         </div>
                         <div>
                             <h3 class="text-lg font-medium text-gray-300 mb-2">Temperature & Humidity</h3>
-                            <a href="/plot/temp-humidity" target="_blank">
-                                <img src="/plot/temp-humidity" alt="Temperature and Humidity Graph"
+                            <a href="/plot/temp-humidity" target="_blank" id="tempHumidityLink">
+                                <img src="/plot/temp-humidity" alt="Temperature and Humidity Graph" id="tempHumidityImg"
                                      class="rounded-lg shadow-lg w-full cursor-zoom-in hover:opacity-90 transition">
                             </a>
                         </div>
                         <div>
                             <h3 class="text-lg font-medium text-gray-300 mb-2">Soil Moisture</h3>
-                            <a href="/plot/soil-moisture" target="_blank">
-                                <img src="/plot/soil-moisture" alt="Soil Moisture Graph"
+                            <a href="/plot/soil-moisture" target="_blank" id="soilMoistureLink">
+                                <img src="/plot/soil-moisture" alt="Soil Moisture Graph" id="soilMoistureImg"
                                      class="rounded-lg shadow-lg w-full cursor-zoom-in hover:opacity-90 transition">
                             </a>
                         </div>
@@ -575,32 +668,102 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                        <!-- Height -->
-                        <div class="space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="p-2 bg-purple-500/20 rounded-lg">
-                                        <svg class="icon-lg text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
-                                        </svg>
-                                    </div>
-                                    <span class="font-semibold text-gray-200">Height</span>
-                                </div>
-                                <span class="status-badge bg-green-500/20 border border-green-500/30 text-green-300 text-xs px-3 py-1 rounded-full">normal</span>
-                            </div>
-                            <div class="relative">
-                                <div class="bar-container">
-                                    <div class="optimal-range" style="left: 45%; width: 20%;"></div>
-                                    <div class="current-bar" style="width: 60%; background: linear-gradient(90deg, #8b5cf6, #7c3aed);"></div>
-                                    <div class="target-line" style="left: 55%;"></div>
-                                </div>
-                                <div class="flex items-center justify-between mt-3">
-                                    <span class="text-xl font-bold text-white">{{ latest.plant_height_mm }}<span class="text-sm text-gray-400 ml-1">mm</span></span>
-                                    <span class="text-xs text-gray-500">Target: 55mm</span>
-                                </div>
+    <!-- Plant Filter Modal -->
+    <div id="filterModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Overlay -->
+        <div class="modal-overlay absolute inset-0 fade-in" id="filterModalOverlay"></div>
+
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-2xl mx-auto">
+            <div id="mainFilterModal" class="glass-card rounded-2xl shadow-2xl scale-in">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-blue-500/20 rounded-lg">
+                            <svg class="icon-lg text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.414A1 1 0 013 6.707V4z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-white">Filter Plants for Trend Analysis</h2>
+                            <p class="text-sm text-gray-400">Select which plants to include in the graphs</p>
+                        </div>
+                    </div>
+                    <button id="closeFilterModal" class="text-gray-400 hover:text-white transition-colors p-2">
+                        <svg class="icon-lg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Selection Controls -->
+                <div class="px-6 py-4 border-b border-gray-700 bg-gray-800/30">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-3">
+                            <input type="checkbox" id="selectAllFilterCheckbox" class="select-all-checkbox">
+                            <label for="selectAllFilterCheckbox" class="text-sm font-medium text-gray-300 cursor-pointer">
+                                Select All Plants
+                            </label>
+                        </div>
+                        <div class="flex items-center gap-4">
+                            <span id="filterSelectedCount" class="text-sm text-gray-400">
+                                <span class="font-semibold text-blue-400">0</span> selected
+                            </span>
+                            <button id="clearFilterSelection" class="text-sm text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Plants List -->
+                <div class="p-6">
+                    <div class="max-h-96 overflow-y-auto custom-scrollbar space-y-3" id="filterPlantsList">
+                        <!-- Plant items will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Info Message -->
+                <div class="mx-6 mb-6">
+                    <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
+                        <div class="flex items-start gap-3">
+                            <svg class="icon text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm text-blue-300">
+                                <p class="font-medium mb-1">Filter Information:</p>
+                                <ul class="list-disc list-inside space-y-1 text-blue-400">
+                                    <li>Select plants to include in trend analysis</li>
+                                    <li>Graphs will update to show data for selected plants only</li>
+                                    <li>Leave empty to show all plants (default behavior)</li>
+                                </ul>
                             </div>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex items-center justify-between p-6 border-t border-gray-700 bg-gray-800/30">
+                    <div class="text-sm text-gray-500">
+                        <span id="totalFilterPlantsCount">0</span> plants available
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="cancelFilterBtn" class="px-6 py-3 border border-gray-600 text-gray-300 rounded-lg hover:bg-gray-800 hover:border-gray-500 transition-all duration-200">
+                            Cancel
+                        </button>
+                        <button id="applyFilterBtn" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 shadow-lg">
+                            <span id="applyFilterText">Apply Filter</span>
+                            <svg id="applyFilterSpinner" class="hidden animate-spin ml-2 h-4 w-4 inline" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -755,8 +918,9 @@
             document.getElementById('plantId').textContent = this.value;
         });
 
-        // Delete Modal Functionality
+        // Global state management
         let selectedPlants = new Set();
+        let selectedFilterPlants = new Set();
         let plantsData = [];
 
         // Plant icons mapping
@@ -774,7 +938,7 @@
             'default': '🌱'
         };
 
-        // DOM Elements
+        // DOM Elements - Delete Modal
         const deleteModal = document.getElementById('deleteModal');
         const mainDeleteModal = document.getElementById('mainDeleteModal');
         const successModal = document.getElementById('successModal');
@@ -785,6 +949,18 @@
         const deleteBtn = document.getElementById('deleteBtn');
         const clearSelectionBtn = document.getElementById('clearSelection');
 
+        // DOM Elements - Filter Modal
+        const filterModal = document.getElementById('filterModal');
+        const mainFilterModal = document.getElementById('mainFilterModal');
+        const filterPlantsList = document.getElementById('filterPlantsList');
+        const selectAllFilterCheckbox = document.getElementById('selectAllFilterCheckbox');
+        const filterSelectedCountSpan = document.getElementById('filterSelectedCount');
+        const clearFilterSelectionBtn = document.getElementById('clearFilterSelection');
+        const applyFilterBtn = document.getElementById('applyFilterBtn');
+        const filterBadge = document.getElementById('filterBadge');
+        const activeFilters = document.getElementById('activeFilters');
+        const filterTags = document.getElementById('filterTags');
+
         // Fetch plants data from backend
         async function fetchPlantsData() {
             try {
@@ -792,31 +968,37 @@
                 const data = await response.json();
                 plantsData = data.plants || [];
                 populatePlantsList();
+                populateFilterPlantsList();
                 updateTotalCount();
+                updateFilterTotalCount();
                 updateUI();
+                updateFilterUI();
             } catch (error) {
                 console.error('Failed to fetch plants data:', error);
                 plantsData = [];
                 populatePlantsList();
+                populateFilterPlantsList();
                 updateTotalCount();
+                updateFilterTotalCount();
                 updateUI();
+                updateFilterUI();
             }
         }
 
-        // Populate plants list
+        // Delete Modal Functions
         function populatePlantsList() {
             plantsList.innerHTML = '';
 
             if (plantsData.length === 0) {
                 plantsList.innerHTML = `
-                        <div class="text-center py-8 text-gray-400">
-                            <svg class="icon-2xl mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3"></path>
-                            </svg>
-                            <p class="text-lg font-medium">No plants found</p>
-                            <p class="text-sm">Add some plants to your dashboard first</p>
-                        </div>
-                    `;
+                    <div class="text-center py-8 text-gray-400">
+                        <svg class="icon-2xl mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3"></path>
+                        </svg>
+                        <p class="text-lg font-medium">No plants found</p>
+                        <p class="text-sm">Add some plants to your dashboard first</p>
+                    </div>
+                `;
                 return;
             }
 
@@ -826,7 +1008,6 @@
             });
         }
 
-        // Create individual plant item
         function createPlantItem(plant) {
             const div = document.createElement('div');
             div.className = 'plant-item border border-gray-700 rounded-lg p-4 cursor-pointer transition-all duration-200';
@@ -852,23 +1033,23 @@
             const plantIcon = plantIcons[plant.type] || plantIcons.default;
 
             div.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <input type="checkbox" class="custom-checkbox plant-checkbox" data-plant-id="${plant.id}">
-                        <div class="plant-icon text-2xl transition-transform duration-200">${plantIcon}</div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex items-center justify-between mb-1">
-                                <h3 class="font-semibold text-white truncate">${plant.name}</h3>
-                                <div class="flex items-center gap-2">
-                                    <div class="w-2 h-2 rounded-full ${healthClass}" title="Health: ${plant.health}%"></div>
-                                    <span class="text-sm ${healthClass} font-medium">${plant.health}%</span>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between text-sm text-gray-400">
-                                <span>ESP: ${plant.esp_id}</span>
+                <div class="flex items-center gap-4">
+                    <input type="checkbox" class="custom-checkbox plant-checkbox" data-plant-id="${plant.id}">
+                    <div class="plant-icon text-2xl transition-transform duration-200">${plantIcon}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-white truncate">${plant.name}</h3>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full ${healthClass}" title="Health: ${plant.health}%"></div>
+                                <span class="text-sm ${healthClass} font-medium">${plant.health}%</span>
                             </div>
                         </div>
+                        <div class="flex items-center justify-between text-sm text-gray-400">
+                            <span>ESP: ${plant.esp_id}</span>
+                        </div>
                     </div>
-                `;
+                </div>
+            `;
 
             // Add click handler for the entire item
             div.addEventListener('click', function (e) {
@@ -889,7 +1070,6 @@
             return div;
         }
 
-        // Handle individual plant selection
         function handlePlantSelection(checkbox) {
             const plantId = parseInt(checkbox.dataset.plantId);
             const plantItem = checkbox.closest('.plant-item');
@@ -905,7 +1085,109 @@
             updateUI();
         }
 
-        // Handle select all functionality
+        // Filter Modal Functions
+        function populateFilterPlantsList() {
+            filterPlantsList.innerHTML = '';
+
+            if (plantsData.length === 0) {
+                filterPlantsList.innerHTML = `
+                    <div class="text-center py-8 text-gray-400">
+                        <svg class="icon-2xl mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4m0 0l-4-4m4 4V3"></path>
+                        </svg>
+                        <p class="text-lg font-medium">No plants found</p>
+                        <p class="text-sm">Add some plants to your dashboard first</p>
+                    </div>
+                `;
+                return;
+            }
+
+            plantsData.forEach(plant => {
+                const filterItem = createFilterItem(plant);
+                filterPlantsList.appendChild(filterItem);
+            });
+        }
+
+        function createFilterItem(plant) {
+            const div = document.createElement('div');
+            div.className = 'filter-item border border-gray-700 rounded-lg p-4 cursor-pointer transition-all duration-200';
+            div.dataset.plantId = plant.id;
+
+            // Determine health status and class
+            let healthClass = 'health-good';
+            if (plant.health >= 90) {
+                healthClass = 'health-excellent';
+            } else if (plant.health >= 70) {
+                healthClass = 'health-good';
+            } else if (plant.health >= 50) {
+                healthClass = 'health-warning';
+            } else {
+                healthClass = 'health-critical';
+            }
+
+            const plantIcon = plantIcons[plant.type] || plantIcons.default;
+
+            div.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <input type="checkbox" class="filter-checkbox plant-filter-checkbox" data-plant-id="${plant.id}">
+                    <div class="plant-icon text-2xl transition-transform duration-200">${plantIcon}</div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <h3 class="font-semibold text-white truncate">${plant.name}</h3>
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full ${healthClass}" title="Health: ${plant.health}%"></div>
+                                <span class="text-sm ${healthClass} font-medium">${plant.health}%</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm text-gray-400">
+                            <span>ESP: ${plant.esp_id}</span>
+                            <span>Last updated: ${plant.last_updated || 'Recently'}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Check if this plant is already selected
+            if (selectedFilterPlants.has(plant.id)) {
+                div.querySelector('.plant-filter-checkbox').checked = true;
+                div.classList.add('selected');
+            }
+
+            // Add click handler for the entire item
+            div.addEventListener('click', function (e) {
+                if (e.target.type !== 'checkbox') {
+                    const checkbox = this.querySelector('.plant-filter-checkbox');
+                    checkbox.checked = !checkbox.checked;
+                    handleFilterPlantSelection(checkbox);
+                }
+            });
+
+            // Add checkbox change handler
+            const checkbox = div.querySelector('.plant-filter-checkbox');
+            checkbox.addEventListener('change', function (e) {
+                e.stopPropagation();
+                handleFilterPlantSelection(this);
+            });
+
+            return div;
+        }
+
+        function handleFilterPlantSelection(checkbox) {
+            const plantId = parseInt(checkbox.dataset.plantId);
+            const filterItem = checkbox.closest('.filter-item');
+
+            if (checkbox.checked) {
+                selectedFilterPlants.add(plantId);
+                filterItem.classList.add('selected');
+            } else {
+                selectedFilterPlants.delete(plantId);
+                filterItem.classList.remove('selected');
+            }
+
+            updateFilterUI();
+        }
+
+        // Handle select all functionality for delete modal
         selectAllCheckbox.addEventListener('change', function () {
             const checkboxes = document.querySelectorAll('.plant-checkbox');
             const plantItems = document.querySelectorAll('.plant-item');
@@ -928,7 +1210,30 @@
             updateUI();
         });
 
-        // Clear selection
+        // Handle select all functionality for filter modal
+        selectAllFilterCheckbox.addEventListener('change', function () {
+            const checkboxes = document.querySelectorAll('.plant-filter-checkbox');
+            const filterItems = document.querySelectorAll('.filter-item');
+
+            if (this.checked) {
+                // Select all
+                selectedFilterPlants.clear();
+                checkboxes.forEach(cb => {
+                    cb.checked = true;
+                    selectedFilterPlants.add(parseInt(cb.dataset.plantId));
+                });
+                filterItems.forEach(item => item.classList.add('selected'));
+            } else {
+                // Deselect all
+                selectedFilterPlants.clear();
+                checkboxes.forEach(cb => cb.checked = false);
+                filterItems.forEach(item => item.classList.remove('selected'));
+            }
+
+            updateFilterUI();
+        });
+
+        // Clear selection functions
         clearSelectionBtn.addEventListener('click', function () {
             selectedPlants.clear();
             document.querySelectorAll('.plant-checkbox').forEach(cb => cb.checked = false);
@@ -936,7 +1241,14 @@
             updateUI();
         });
 
-        // Update UI based on selection
+        clearFilterSelectionBtn.addEventListener('click', function () {
+            selectedFilterPlants.clear();
+            document.querySelectorAll('.plant-filter-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.filter-item').forEach(item => item.classList.remove('selected'));
+            updateFilterUI();
+        });
+
+        // Update UI functions
         function updateUI() {
             const selectedCount = selectedPlants.size;
             const totalCount = plantsData.length;
@@ -972,27 +1284,149 @@
             }
         }
 
-        // Update total count
+        function updateFilterUI() {
+            const selectedCount = selectedFilterPlants.size;
+            const totalCount = plantsData.length;
+
+            // Update selected count
+            filterSelectedCountSpan.innerHTML = `<span class="font-semibold text-blue-400 ${selectedCount > 0 ? 'pulse-gentle' : ''}">${selectedCount}</span> selected`;
+
+            // Update select all checkbox state
+            if (selectedCount === 0) {
+                selectAllFilterCheckbox.checked = false;
+                selectAllFilterCheckbox.indeterminate = false;
+            } else if (selectedCount === totalCount) {
+                selectAllFilterCheckbox.checked = true;
+                selectAllFilterCheckbox.indeterminate = false;
+            } else {
+                selectAllFilterCheckbox.checked = false;
+                selectAllFilterCheckbox.indeterminate = true;
+            }
+
+            // Update clear selection button
+            clearFilterSelectionBtn.disabled = selectedCount === 0;
+
+            // Update apply button text
+            if (selectedCount === 0) {
+                document.getElementById('applyFilterText').textContent = 'Show All Plants';
+            } else {
+                document.getElementById('applyFilterText').textContent = selectedCount === 1 ? 'Filter 1 Plant' : `Filter ${selectedCount} Plants`;
+            }
+        }
+
         function updateTotalCount() {
             document.getElementById('totalPlantsCount').textContent = plantsData.length;
         }
 
-        // Show modal
-        function showModal() {
+        function updateFilterTotalCount() {
+            document.getElementById('totalFilterPlantsCount').textContent = plantsData.length;
+        }
+
+        // Update filter badge and active filters display
+        function updateFilterDisplay() {
+            const selectedCount = selectedFilterPlants.size;
+
+            if (selectedCount > 0) {
+                filterBadge.textContent = selectedCount;
+                filterBadge.classList.remove('hidden');
+                activeFilters.classList.remove('hidden');
+
+                // Update filter tags
+                filterTags.innerHTML = '';
+                selectedFilterPlants.forEach(plantId => {
+                    const plant = plantsData.find(p => p.id === plantId);
+                    if (plant) {
+                        const tag = document.createElement('span');
+                        tag.className = 'inline-flex items-center gap-1 px-3 py-1 bg-blue-500/20 border border-blue-500/30 text-blue-300 text-sm rounded-full';
+                        tag.innerHTML = `
+                            <span>${plantIcons[plant.type] || plantIcons.default}</span>
+                            <span>${plant.name}</span>
+                            <button class="ml-1 hover:text-blue-200 transition-colors" onclick="removeFilterTag(${plantId})">
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                            </button>
+                        `;
+                        filterTags.appendChild(tag);
+                    }
+                });
+            } else {
+                filterBadge.classList.add('hidden');
+                activeFilters.classList.add('hidden');
+            }
+        }
+
+        // Remove individual filter tag
+        function removeFilterTag(plantId) {
+            selectedFilterPlants.delete(plantId);
+
+            // Update checkbox in filter modal if it's open
+            const checkbox = document.querySelector(`.plant-filter-checkbox[data-plant-id="${plantId}"]`);
+            if (checkbox) {
+                checkbox.checked = false;
+                checkbox.closest('.filter-item').classList.remove('selected');
+            }
+
+            updateFilterDisplay();
+            updateFilterUI();
+            applyPlantFilter();
+        }
+
+        // Clear all filters
+        document.getElementById('clearFilters').addEventListener('click', function() {
+            selectedFilterPlants.clear();
+            document.querySelectorAll('.plant-filter-checkbox').forEach(cb => cb.checked = false);
+            document.querySelectorAll('.filter-item').forEach(item => item.classList.remove('selected'));
+            updateFilterDisplay();
+            updateFilterUI();
+            applyPlantFilter();
+        });
+
+        // Apply plant filter to graphs
+        function applyPlantFilter() {
+            const selectedPlantIds = Array.from(selectedFilterPlants);
+            let filterParam = '';
+
+            if (selectedPlantIds.length > 0) {
+                filterParam = '?plants=' + selectedPlantIds.join(',');
+            }
+
+            // Update graph URLs
+            document.getElementById('lightIntensityLink').href = '/plot/light-intensity' + filterParam;
+            document.getElementById('lightIntensityImg').src = '/plot/light-intensity' + filterParam;
+
+            document.getElementById('tempHumidityLink').href = '/plot/temp-humidity' + filterParam;
+            document.getElementById('tempHumidityImg').src = '/plot/temp-humidity' + filterParam;
+
+            document.getElementById('soilMoistureLink').href = '/plot/soil-moisture' + filterParam;
+            document.getElementById('soilMoistureImg').src = '/plot/soil-moisture' + filterParam;
+        }
+
+        // Modal show/hide functions
+        function showDeleteModal() {
             deleteModal.classList.remove('hidden');
             mainDeleteModal.classList.remove('hidden');
             successModal.classList.add('hidden');
             fetchPlantsData(); // Refresh plants data when opening modal
         }
 
-        // Hide modal
-        function hideModal() {
+        function hideDeleteModal() {
             deleteModal.classList.add('hidden');
             // Reset selections when closing
             selectedPlants.clear();
             document.querySelectorAll('.plant-checkbox').forEach(cb => cb.checked = false);
             document.querySelectorAll('.plant-item').forEach(item => item.classList.remove('selected'));
             updateUI();
+        }
+
+        function showFilterModal() {
+            filterModal.classList.remove('hidden');
+            mainFilterModal.classList.remove('hidden');
+            fetchPlantsData(); // Refresh plants data when opening modal
+        }
+
+        function hideFilterModal() {
+            filterModal.classList.add('hidden');
         }
 
         // Handle delete confirmation
@@ -1033,15 +1467,21 @@
                             if (index > -1) {
                                 plantsData.splice(index, 1);
                             }
+                            // Also remove from filter selection if present
+                            selectedFilterPlants.delete(plantId);
                         });
 
                         // Reset selections
                         selectedPlants.clear();
 
-                        // Repopulate the list
+                        // Repopulate the lists
                         populatePlantsList();
+                        populateFilterPlantsList();
                         updateTotalCount();
+                        updateFilterTotalCount();
                         updateUI();
+                        updateFilterUI();
+                        updateFilterDisplay();
                     } else {
                         throw new Error('Some deletions failed');
                     }
@@ -1058,6 +1498,30 @@
                 });
         });
 
+        // Handle filter application
+        applyFilterBtn.addEventListener('click', function () {
+            const applyText = document.getElementById('applyFilterText');
+            const applySpinner = document.getElementById('applyFilterSpinner');
+
+            // Show loading state
+            applyText.textContent = 'Applying...';
+            applySpinner.classList.remove('hidden');
+            this.disabled = true;
+
+            // Simulate API call delay for better UX
+            setTimeout(() => {
+                applyPlantFilter();
+                updateFilterDisplay();
+                hideFilterModal();
+
+                // Reset button state
+                applyText.textContent = selectedFilterPlants.size === 0 ? 'Show All Plants' :
+                    (selectedFilterPlants.size === 1 ? 'Filter 1 Plant' : `Filter ${selectedFilterPlants.size} Plants`);
+                applySpinner.classList.add('hidden');
+                this.disabled = false;
+            }, 500);
+        });
+
         // Show success modal
         function showSuccessModal(deletedCount) {
             mainDeleteModal.classList.add('hidden');
@@ -1072,26 +1536,34 @@
             // Update success details
             const successDetails = document.getElementById('successDetails');
             successDetails.innerHTML = `
-                    <li>${deletedCount} plant profile${deletedCount > 1 ? 's' : ''} removed</li>
-                    <li>All sensor data cleared</li>
-                    <li>Monitoring alerts disabled</li>
-                    <li>Associated images and notes deleted</li>
-                `;
+                <li>${deletedCount} plant profile${deletedCount > 1 ? 's' : ''} removed</li>
+                <li>All sensor data cleared</li>
+                <li>Monitoring alerts disabled</li>
+                <li>Associated images and notes deleted</li>
+            `;
         }
 
-        // Event listeners for modal
-        document.getElementById('openDeleteModal').addEventListener('click', showModal);
-        document.getElementById('closeModal').addEventListener('click', hideModal);
-        document.getElementById('cancelBtn').addEventListener('click', hideModal);
+        // Event listeners for modals
+        document.getElementById('openDeleteModal').addEventListener('click', showDeleteModal);
+        document.getElementById('openFilterModal').addEventListener('click', showFilterModal);
+        document.getElementById('closeModal').addEventListener('click', hideDeleteModal);
+        document.getElementById('closeFilterModal').addEventListener('click', hideFilterModal);
+        document.getElementById('cancelBtn').addEventListener('click', hideDeleteModal);
+        document.getElementById('cancelFilterBtn').addEventListener('click', hideFilterModal);
         document.getElementById('closeSuccessBtn').addEventListener('click', function () {
-            hideModal();
+            hideDeleteModal();
             // Optionally refresh the page to update the dashboard
             location.reload();
         });
-        document.getElementById('modalOverlay').addEventListener('click', hideModal);
+        document.getElementById('modalOverlay').addEventListener('click', hideDeleteModal);
+        document.getElementById('filterModalOverlay').addEventListener('click', hideFilterModal);
 
         // Prevent modal content clicks from closing modal
         mainDeleteModal.addEventListener('click', function (e) {
+            e.stopPropagation();
+        });
+
+        mainFilterModal.addEventListener('click', function (e) {
             e.stopPropagation();
         });
 
@@ -1101,14 +1573,19 @@
 
         // Handle escape key
         document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && !deleteModal.classList.contains('hidden')) {
-                hideModal();
+            if (e.key === 'Escape') {
+                if (!deleteModal.classList.contains('hidden')) {
+                    hideDeleteModal();
+                } else if (!filterModal.classList.contains('hidden')) {
+                    hideFilterModal();
+                }
             }
         });
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function () {
-            console.log('Plant Health Dashboard loaded successfully!');
+            fetchPlantsData();
+            console.log('Plant Health Dashboard with Filter loaded successfully!');
         });
     </script>
 </body>

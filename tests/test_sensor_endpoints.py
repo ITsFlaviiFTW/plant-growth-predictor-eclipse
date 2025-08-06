@@ -8,9 +8,7 @@ def test_update_sensor_data_success(client):
         "temperature": 23.4,
         "humidity": 50.1,
         "light_lux": 300.0,
-        "soil_moisture": 45,
-        "distance_mm": 150,
-        "plant_height_mm": 80
+        "soil_moisture": 45
     }
     response = client.post("/sensor/update", json=payload)
     assert response.status_code == 200
@@ -27,9 +25,7 @@ def test_predict_health_with_data(client):
         "temperature": 21.0,
         "humidity": 40.0,
         "light_lux": 500.0,
-        "soil_moisture": 60,
-        "distance_mm": 100,
-        "plant_height_mm": 75
+        "soil_moisture": 60
     }
     client.post("/sensor/update", json=payload)
     response = client.get("/predict/TEST456")
@@ -50,9 +46,7 @@ def test_dashboard_with_data(client):
         "temperature": 22.2,
         "humidity": 55.5,
         "light_lux": 400.0,
-        "soil_moisture": 50,
-        "distance_mm": 120,
-        "plant_height_mm": 60
+        "soil_moisture": 50
     }
     client.post("/sensor/update", json=payload)
     response = client.get("/?esp_id=DASH123")

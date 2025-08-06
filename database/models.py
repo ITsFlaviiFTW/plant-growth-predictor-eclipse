@@ -16,8 +16,6 @@ class CurrentSensorData(Base):
     humidity = Column(Float)
     light_lux = Column(Float)
     soil_moisture = Column(Integer)
-    distance_mm = Column(Integer)
-    plant_height_mm = Column(Integer)
 
 class User(Base):
     __tablename__ = "users"
@@ -31,7 +29,6 @@ class User(Base):
 
 class Plant(Base):
     __tablename__ = "plants"
-    owner = relationship("User", back_populates="plants")
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
     esp_id = Column(String, nullable=False)

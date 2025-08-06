@@ -1,3 +1,5 @@
+from fastapi import Request, HTTPException
+from database.models import Plant, User
 import matplotlib
 matplotlib.use("Agg")
 matplotlib.rcParams['font.family'] = 'DejaVu Sans'
@@ -26,23 +28,62 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 from database.database import get_db
+from jose import jwt, JWTError
+from login.auth import SECRET_KEY, ALGORITHM
 
 router = APIRouter()
 
 @router.get("/plot/light-intensity")
-def light_intensity_plot(db: Session = Depends(get_db)):
-    # Query: Get daily average light per sensor
+def light_intensity_plot(request: Request, db: Session = Depends(get_db)):
+
+    # --------------------------
+    # Authenticate user
+    # --------------------------
+    token = request.cookies.get("access_token")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username = payload.get("sub")
+        if not username:
+            raise ValueError
+    except (JWTError, ValueError):
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter_by(username=username).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # --------------------------
+    # Get plant_ids from ?plants=
+    # --------------------------
+    plant_ids = request.query_params.get("plants")
+    user_plant_query = db.query(Plant).filter_by(user_id=user.id)
+
+    if plant_ids:
+        ids = [int(p) for p in plant_ids.split(",") if p.isdigit()]
+        user_plant_query = user_plant_query.filter(Plant.id.in_(ids))
+
+    esp_ids = [p.esp_id for p in user_plant_query.all()]
+    if not esp_ids:
+        return Response(content=b"", media_type="image/png")  # No data
+
+    # --------------------------
+    # Query data
+    # --------------------------
     result = db.execute("""
         SELECT DATE(timestamp) AS date, esp_id, AVG(light_lux) AS avg_lux
         FROM current_sensor_data
+        WHERE esp_id = ANY(:esp_ids)
         GROUP BY DATE(timestamp), esp_id
         ORDER BY DATE(timestamp) ASC
-    """).fetchall()
+    """, {"esp_ids": esp_ids}).fetchall()
 
-    # Convert to DataFrame
     df = pd.DataFrame(result, columns=["date", "esp_id", "avg_lux"])
+    if df.empty:
+        return Response(content=b"", media_type="image/png")
 
-    # Create plot
+    # --------------------------
+    # Plot
+    # --------------------------
     fig, ax = plt.subplots(figsize=(10, 3))
     for esp_id, group in df.groupby("esp_id"):
         ax.bar(group["date"], group["avg_lux"], label=esp_id)
@@ -50,15 +91,16 @@ def light_intensity_plot(db: Session = Depends(get_db)):
     ax.set_xlabel("Date")
     ax.set_ylabel("Average Daily Lux")
     ax.legend()
-    plt.xticks(rotation=45)
-    #plt.tight_layout()
+    ax.tick_params(axis='x', rotation=45)
 
-    # Render to image
+    # --------------------------
+    # Render image
+    # --------------------------
     buf = BytesIO()
-    canvas = FigureCanvas(fig)
-    canvas.print_png(buf)
+    FigureCanvas(fig).print_png(buf)
     buf.seek(0)
     image_bytes = buf.read()
     buf.close()
     plt.close(fig)
+
     return Response(content=image_bytes, media_type="image/png")

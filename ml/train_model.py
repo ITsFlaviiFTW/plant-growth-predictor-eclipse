@@ -7,17 +7,8 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import train_test_split
 
 # Load and inspect
-df = pd.read_csv("ml/plant_health_data.csv")
+df = pd.read_csv("ml/augmented_health_data.csv")
 print("Raw columns:", df.columns.tolist())
-
-# Rename, using original names
-df = df.rename(columns={
-    "Ambient_Temperature": "temperature",
-    "Humidity": "humidity",
-    "Light_Intensity": "light_lux",
-    "Soil_Moisture": "soil_moisture",
-    "Plant_Health_Status": "label"
-})
 
 # Standardize format
 df.columns = df.columns.str.strip().str.lower()
@@ -32,11 +23,6 @@ df = df[
     (df["light_lux"] >= 0) &
     (df["soil_moisture"] >= 0) & (df["soil_moisture"] <= 100)
 ]
-
-# Map column names to match your live database
-df = df.rename(columns={
-    "light_intensity": "light_lux"
-})
 
 # Label encoding
 label_encoder = LabelEncoder()
