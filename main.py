@@ -25,6 +25,7 @@ from database.models import CurrentSensorData, Plant, User
 from login.auth import ALGORITHM, SECRET_KEY
 from login.login_routes import router as auth_router
 from plot import light_intensity, soil_moisture, temp_humidity
+from ml.predict import analyze_plant
 
 app = FastAPI()
 
@@ -258,20 +259,14 @@ def evaluate_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
     # Feature importance
     importances = dict(zip(feature_columns, model.feature_importances_))
     sorted_importance = sorted(importances.items(), key=lambda x: x[1], reverse=True)
-    top_factors = [f[0] for f in sorted_importance[:2]]
-    top_factors_readable = ', '.join(f.replace('_', ' ').title() for f in top_factors)
 
-    # AI suggestion
-    suggestion = None
-    if label.lower() != "healthy":
-        from ml.t5_predict import generate_suggestion
-        prompt = (
-            f"temperature={latest.temperature}, "
-            f"humidity={latest.humidity}, "
-            f"light_lux={latest.light_lux}, "
-            f"soil_moisture={latest.soil_moisture}"
-        )
-        suggestion = generate_suggestion(prompt)
+    # Run analysis using simpler logic
+    result = analyze_plant({
+        "temperature": latest.temperature,
+        "humidity": latest.humidity,
+        "light_lux": latest.light_lux,
+        "soil_moisture": latest.soil_moisture
+    })
 
     return {
         "esp_id": esp_id,
@@ -287,7 +282,8 @@ def evaluate_health_for_esp(esp_id: str, db: Session = Depends(get_db)):
         "feature_importance": [
             [feature, float(importance)] for feature, importance in sorted_importance
         ],
-        "suggestion": suggestion
+        "ai_overall_status": result["overall_status"],
+        "ai_suggestions": result["suggestions"]
     }
 
 @app.get("/plants/check-esp/{esp_id}")
@@ -295,7 +291,6 @@ def check_esp(esp_id: str, db: Session = Depends(get_db)):
     exists = db.query(CurrentSensorData).filter(CurrentSensorData.esp_id == esp_id).first() is not None
     return {"exists": exists}
 
-# GET: live dashboard
 @app.get("/", response_class=HTMLResponse)
 def dashboard(
     request: Request,
@@ -339,10 +334,10 @@ def dashboard(
     start = time.perf_counter()
 
     input_data = pd.DataFrame([{
-    "temperature": latest.temperature,
-    "humidity": latest.humidity,
-    "light_lux": latest.light_lux,
-    "soil_moisture": latest.soil_moisture
+        "temperature": latest.temperature,
+        "humidity": latest.humidity,
+        "light_lux": latest.light_lux,
+        "soil_moisture": latest.soil_moisture
     }])
     input_data = input_data.reindex(columns=feature_columns, fill_value=0)
 
@@ -355,16 +350,13 @@ def dashboard(
     top_factors = [f[0] for f in sorted_importance[:2]]
     top_factors_readable = ', '.join(f.replace('_', ' ').title() for f in top_factors)
 
-    suggestion = None
-    if label.lower() != "healthy":
-        from ml.t5_predict import generate_suggestion
-        prompt = (
-            f"temperature={latest.temperature}, "
-            f"humidity={latest.humidity}, "
-            f"light_lux={latest.light_lux}, "
-            f"soil_moisture={latest.soil_moisture}"
-        )
-        suggestion = generate_suggestion(prompt)
+    # Use new AI logic
+    analysis = analyze_plant({
+        "temperature": latest.temperature,
+        "humidity": latest.humidity,
+        "light_lux": latest.light_lux,
+        "soil_moisture": latest.soil_moisture
+    })
 
     # End timing
     duration_ms = round((time.perf_counter() - start) * 1000, 1)
@@ -373,14 +365,15 @@ def dashboard(
     local_time = latest.timestamp.replace(tzinfo=pytz.utc).astimezone(eastern)
 
     return templates.TemplateResponse("dashboard.html", {
-    "request": request,
-    "latest": latest,
-    "esp_ids": esp_ids,
-    "esp_id": latest.esp_id,
-    "predicted_health": label,
-    "confidence": confidence,
-    "suggestion": suggestion,
-    "influencers": top_factors_readable,
-    "inference_time": duration_ms,
-    "plant": plant
-})
+        "request": request,
+        "latest": latest,
+        "esp_ids": esp_ids,
+        "esp_id": latest.esp_id,
+        "predicted_health": label,
+        "confidence": confidence,
+        "suggestion": analysis["suggestions"],
+        "influencers": top_factors_readable,
+        "inference_time": duration_ms,
+        "plant": plant,
+        "overall_status": analysis["overall_status"]
+    })
