@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session, declarative_base
 Base = declarative_base()
 
 # DB connection statement
-DATABASE_URL = "postgresql://plant_user:plantUser!23@10.0.0.212:5432/plant_monitoring"
+DATABASE_URL = "postgresql://plant_user:plantUser!23@192.168.137.2:5432/plant_monitoring"
 
 # Create engine and session
 engine = create_engine(DATABASE_URL)

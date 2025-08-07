@@ -9,7 +9,7 @@ source venv/bin/activate
 uvicorn main:app --host 0.0.0.0 --port 8000
 
 ngrok http --host-header=rewrite --domain=eclipsedashboard.ngrok.app 8000
-
+ngrok http --domain=plantdata.ngrok.io 8000
 
 psql -U plant_user -d plant_monitoring
 

@@ -576,17 +576,25 @@
                                     </div>
                                     <span class="font-semibold text-gray-200">Temperature</span>
                                 </div>
-                                <span class="status-badge bg-green-500/20 border border-green-500/30 text-green-300 text-xs px-3 py-1 rounded-full">optimal</span>
+                                <span class="status-badge
+                                    {% if status_data.temperature == 'optimal' %}bg-green-500/20 border border-green-500/30 text-green-300
+                                    {% elif status_data.temperature == 'low' %}bg-amber-500/20 border border-amber-500/30 text-amber-300
+                                    {% elif status_data.temperature == 'high' %}bg-blue-500/20 border border-blue-500/30 text-blue-300
+                                    {% else %}bg-red-500/20 border border-red-500/30 text-red-300{% endif %}
+                                    text-xs px-3 py-1 rounded-full">
+                                    {{ status_data.temperature }}
+                                </span>
+
                             </div>
                             <div class="relative">
                                 <div class="bar-container">
-                                    <div class="optimal-range" style="left: 63%; width: 20%;"></div>
-                                    <div class="current-bar" style="width: 82%; background: linear-gradient(90deg, #f97316, #ea580c);"></div>
-                                    <div class="target-line" style="left: 73%;"></div>
+                                    <div class="optimal-range" style="left: {{ range_data.temperature.optimal_left }}%; width: {{ range_data.temperature.optimal_width }}%;"></div>
+                                    <div class="current-bar" style="width: {{ range_data.temperature.current }}%; background: linear-gradient(90deg, #f97316, #ea580c);"></div>
+                                    <div class="target-line" style="left: {{ range_data.temperature.target }}%;"></div>
                                 </div>
                                 <div class="flex items-center justify-between mt-3">
                                     <span class="text-xl font-bold text-white">{{ latest.temperature }}<span class="text-sm text-gray-400 ml-1">°C</span></span>
-                                    <span class="text-xs text-gray-500">Target: 22°C</span>
+                                    <span class="text-sm text-gray-400">Target: {{ range_data.temperature.target_value }}°C</span>
                                 </div>
                             </div>
                         </div>
@@ -602,17 +610,24 @@
                                     </div>
                                     <span class="font-semibold text-gray-200">Humidity</span>
                                 </div>
-                                <span class="status-badge bg-amber-500/20 border border-amber-500/30 text-amber-300 text-xs px-3 py-1 rounded-full">low</span>
+                                <span class="status-badge
+                                    {% if status_data.humidity == 'optimal' %}bg-green-500/20 border border-green-500/30 text-green-300
+                                    {% elif status_data.humidity == 'low' %}bg-amber-500/20 border border-amber-500/30 text-amber-300
+                                    {% elif status_data.humidity == 'high' %}bg-blue-500/20 border border-blue-500/30 text-blue-300
+                                    {% else %}bg-red-500/20 border border-red-500/30 text-red-300{% endif %}
+                                    text-xs px-3 py-1 rounded-full">
+                                    {{ status_data.humidity }}
+                                </span>
                             </div>
                             <div class="relative">
                                 <div class="bar-container">
-                                    <div class="optimal-range" style="left: 55%; width: 20%;"></div>
-                                    <div class="current-bar" style="width: 51%; background: linear-gradient(90deg, #f59e0b, #d97706);"></div>
-                                    <div class="target-line" style="left: 65%;"></div>
+                                    <div class="optimal-range" style="left: {{ range_data.humidity.optimal_left }}%; width: {{ range_data.humidity.optimal_width }}%;"></div>
+                                    <div class="current-bar" style="width: {{ range_data.humidity.current }}%; background: linear-gradient(90deg, #3b82f6, #2563eb);"></div>
+                                    <div class="target-line" style="left: {{ range_data.humidity.target }}%;"></div>
                                 </div>
                                 <div class="flex items-center justify-between mt-3">
                                     <span class="text-xl font-bold text-white">{{ latest.humidity }}<span class="text-sm text-gray-400 ml-1">%</span></span>
-                                    <span class="text-xs text-gray-500">Target: 65%</span>
+                                    <span class="text-sm text-gray-400">Target: {{ range_data.humidity.target_value }}%</span>
                                 </div>
                             </div>
                         </div>
@@ -628,17 +643,24 @@
                                     </div>
                                     <span class="font-semibold text-gray-200">Soil Moisture</span>
                                 </div>
-                                <span class="status-badge bg-red-500/20 border border-red-500/30 text-red-300 text-xs px-3 py-1 rounded-full">critical</span>
+                                <span class="status-badge
+                                    {% if status_data.soil_moisture == 'optimal' %}bg-green-500/20 border border-green-500/30 text-green-300
+                                    {% elif status_data.soil_moisture == 'low' %}bg-amber-500/20 border border-amber-500/30 text-amber-300
+                                    {% elif status_data.soil_moisture == 'high' %}bg-blue-500/20 border border-blue-500/30 text-blue-300
+                                    {% else %}bg-red-500/20 border border-red-500/30 text-red-300{% endif %}
+                                    text-xs px-3 py-1 rounded-full">
+                                    {{ status_data.soil_moisture }}
+                                </span>
                             </div>
                             <div class="relative">
                                 <div class="bar-container">
-                                    <div class="optimal-range" style="left: 60%; width: 20%;"></div>
-                                    <div class="current-bar" style="width: {{ latest.soil_moisture }}%; background: {% if latest.soil_moisture >= 60 %}linear-gradient(90deg, #10b981, #059669){% elif latest.soil_moisture >= 40 %}linear-gradient(90deg, #f59e0b, #d97706){% else %}linear-gradient(90deg, #ef4444, #dc2626){% endif %};"></div>
-                                    <div class="target-line" style="left: 70%;"></div>
+                                    <div class="optimal-range" style="left: {{ range_data.soil_moisture.optimal_left }}%; width: {{ range_data.soil_moisture.optimal_width }}%;"></div>
+                                    <div class="current-bar" style="width: {{ range_data.soil_moisture.current }}%; background: linear-gradient(90deg, #059669, #10b981);"></div>
+                                    <div class="target-line" style="left: {{ range_data.soil_moisture.target }}%;"></div>
                                 </div>
                                 <div class="flex items-center justify-between mt-3">
                                     <span class="text-xl font-bold text-white">{{ latest.soil_moisture }}<span class="text-sm text-gray-400 ml-1">%</span></span>
-                                    <span class="text-xs text-gray-500">Target: 70%</span>
+                                    <span class="text-sm text-gray-400">Target: {{ range_data.soil_moisture.target_value }}%</span>
                                 </div>
                             </div>
                         </div>
@@ -654,17 +676,24 @@
                                     </div>
                                     <span class="font-semibold text-gray-200">Light</span>
                                 </div>
-                                <span class="status-badge bg-green-500/20 border border-green-500/30 text-green-300 text-xs px-3 py-1 rounded-full">good</span>
+                                <span class="status-badge
+                                    {% if status_data.light_lux == 'optimal' %}bg-green-500/20 border border-green-500/30 text-green-300
+                                    {% elif status_data.light_lux == 'low' %}bg-amber-500/20 border border-amber-500/30 text-amber-300
+                                    {% elif status_data.light_lux == 'high' %}bg-blue-500/20 border border-blue-500/30 text-blue-300
+                                    {% else %}bg-red-500/20 border border-red-500/30 text-red-300{% endif %}
+                                    text-xs px-3 py-1 rounded-full">
+                                    {{ status_data.light_lux }}
+                                </span>
                             </div>
                             <div class="relative">
                                 <div class="bar-container">
-                                    <div class="optimal-range" style="left: 40%; width: 20%;"></div>
-                                    <div class="current-bar" style="width: 55%; background: linear-gradient(90deg, #eab308, #ca8a04);"></div>
-                                    <div class="target-line" style="left: 50%;"></div>
+                                    <div class="optimal-range" style="left: {{ range_data.light_lux.optimal_left }}%; width: {{ range_data.light_lux.optimal_width }}%;"></div>
+                                    <div class="current-bar" style="width: {{ range_data.light_lux.current }}%; background: linear-gradient(90deg, #eab308, #ca8a04);"></div>
+                                    <div class="target-line" style="left: {{ range_data.light_lux.target }}%;"></div>
                                 </div>
                                 <div class="flex items-center justify-between mt-3">
                                     <span class="text-xl font-bold text-white">{{ latest.light_lux }}<span class="text-sm text-gray-400 ml-1">lux</span></span>
-                                    <span class="text-xs text-gray-500">Target: 1000lux</span>
+                                    <span class="text-sm text-gray-400">Target: {{ range_data.light_lux.target_value }} lux</span>
                                 </div>
                             </div>
                         </div>

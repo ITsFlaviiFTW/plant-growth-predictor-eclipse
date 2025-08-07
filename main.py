@@ -55,12 +55,65 @@ if isinstance(model, (pd.DataFrame, pd.Series, list, tuple, str, bytes, int, flo
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+# Define category ranges
+category_ranges = {
+    "temperature": {
+        "low": (5, 17),
+        "optimal": (18, 25),
+        "high": (26, 35)
+    },
+    "humidity": {
+        "low": (10, 49),
+        "optimal": (50, 70),
+        "high": (71, 90)
+    },
+    "soil_moisture": {
+        "low": (5, 44),
+        "optimal": (45, 70),
+        "high": (71, 90)
+    },
+    "light_lux": {
+        "low": (0, 499),
+        "optimal": (500, 10000),
+        "high": (10001, 30000)
+    }
+}
+
 class PlantCreate(BaseModel):
     esp_id: str
     nickname: str = None
 
 class DeletePlantsRequest(BaseModel):
     esp_ids: List[str]
+
+def get_status(value, category):
+    ranges = category_ranges[category]
+    if ranges["low"][0] <= value <= ranges["low"][1]:
+        return "low"
+    elif ranges["optimal"][0] <= value <= ranges["optimal"][1]:
+        return "optimal"
+    elif ranges["high"][0] <= value <= ranges["high"][1]:
+        return "high"
+    return "critical"
+
+def get_range_config(value, category):
+    ranges = category_ranges[category]
+    min_val = ranges["low"][0]
+    max_val = ranges["high"][1]
+    span = max_val - min_val
+
+    def to_pct(v):
+        return 100 * (v - min_val) / span
+
+    optimal_midpoint = (ranges["optimal"][0] + ranges["optimal"][1]) / 2
+
+    return {
+        "optimal_left": round(to_pct(ranges["optimal"][0]), 1),
+        "optimal_width": round(to_pct(ranges["optimal"][1]) - to_pct(ranges["optimal"][0]), 1),
+        "target": round(to_pct(optimal_midpoint), 1),
+        "target_value": round(optimal_midpoint, 1),
+        "current": round(to_pct(value), 1)
+    }
 
 @app.get("/plants/list")
 def list_user_plants(request: Request, db: Session = Depends(get_db)):
@@ -159,13 +212,14 @@ async def submit_new_plant(
         return RedirectResponse("/auth/login", status_code=302)
 
     user = db.query(User).filter_by(username=username).first()
+
+    # Ensure the esp_id exists in the current_sensor_data table
+    exists = db.query(CurrentSensorData).filter_by(esp_id=espId).first()
+    if not exists:
+        return {"error": f"ESP ID '{espId}' has not sent any data yet. Please power on the device and try again."}
+
     if not user:
         return {"error": "User not found"}
-
-    # Prevent duplicate
-    exists = db.query(Plant).filter_by(esp_id=espId, user_id=user.id).first()
-    if exists:
-        return {"error": "You already added this plant"}
 
     # Save image if present
     image_path = f"/static/plant-images/{espId}.png"
@@ -364,6 +418,20 @@ def dashboard(
     eastern = pytz.timezone("America/Toronto")
     local_time = latest.timestamp.replace(tzinfo=pytz.utc).astimezone(eastern)
 
+    range_data = {
+        "temperature": get_range_config(latest.temperature, "temperature"),
+        "humidity": get_range_config(latest.humidity, "humidity"),
+        "soil_moisture": get_range_config(latest.soil_moisture, "soil_moisture"),
+        "light_lux": get_range_config(latest.light_lux, "light_lux"),
+    }
+
+    status_data = {
+        "temperature": get_status(latest.temperature, "temperature"),
+        "humidity": get_status(latest.humidity, "humidity"),
+        "soil_moisture": get_status(latest.soil_moisture, "soil_moisture"),
+        "light_lux": get_status(latest.light_lux, "light_lux"),
+    }
+
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "latest": latest,
@@ -375,5 +443,7 @@ def dashboard(
         "influencers": top_factors_readable,
         "inference_time": duration_ms,
         "plant": plant,
-        "overall_status": analysis["overall_status"]
+        "overall_status": analysis["overall_status"],
+        "range_data": range_data,          
+        "status_data": status_data 
     })

@@ -33,7 +33,7 @@ features = ["temperature", "humidity", "light_lux", "soil_moisture"]
 X = df[features]
 y = df["label"]
 
-# Train/test split (optional)
+# Train/test split 
 X_train, X_test, y_train, y_test = train_test_split(X, y, stratify=y, test_size=0.2, random_state=42)
 
 # Model training
