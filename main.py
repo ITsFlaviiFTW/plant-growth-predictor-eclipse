@@ -10,7 +10,7 @@ import pytz
 from fastapi import (
     Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile
 )
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from jose import JWTError, jwt
@@ -36,6 +36,9 @@ app.include_router(soil_moisture.router)
 
 # Load model and encoder
 BASE_DIR = Path(__file__).resolve().parent
+PLANT_IMG_DIR = BASE_DIR / "static" / "plant-images"
+PLANT_IMG_DIR.mkdir(parents=True, exist_ok=True)
+DEFAULT_IMG_WEB = "/static/plant-images/default.png"
 model_path = BASE_DIR / "ml" / "health_model.pkl"
 encoder_path = BASE_DIR / "ml" / "label_encoder.pkl"
 features_path = BASE_DIR / "ml" / "feature_columns.pkl"
@@ -54,6 +57,9 @@ if isinstance(model, (pd.DataFrame, pd.Series, list, tuple, str, bytes, int, flo
 # Static files + templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+@app.get("/favicon.ico", include_in_schema=False) # Icon
+def favicon():
+    return FileResponse(BASE_DIR / "static" / "favicon.ico", media_type="image/x-icon")
 
 # Define category ranges
 category_ranges = {
@@ -180,6 +186,15 @@ def delete_plant_by_id(plant_id: int, request: Request, db: Session = Depends(ge
     if not plant:
         raise HTTPException(status_code=404, detail="Plant not found")
 
+    # delete image file if it's not the shared default
+    try:
+        if plant.image_path and plant.image_path != DEFAULT_IMG_WEB:
+            img_path = PLANT_IMG_DIR / Path(plant.image_path).name
+            if img_path.exists():
+                img_path.unlink()
+    except Exception:
+        pass
+
     db.delete(plant)
     db.commit()
     return {"message": "Plant deleted successfully"}
@@ -221,13 +236,26 @@ async def submit_new_plant(
     if not user:
         return {"error": "User not found"}
 
-    # Save image if present
+    # Prevent duplicate ESP ID for this user
+    already_added = db.query(Plant).filter_by(user_id=user.id, esp_id=espId).first()
+    if already_added:
+        return {"error": f"ESP ID '{espId}' is already added to your plants."}
+
+    # Save image if present (preserve extension, otherwise fallback to default)
     image_path = f"/static/plant-images/{espId}.png"
-    if plantImage:
-        with open(f"static/plant-images/{espId}.png", "wb") as f:
+    if plantImage and plantImage.filename:
+        # decide extension by content-type
+        ext = ".png"
+        ct = (plantImage.content_type or "").lower()
+        if ct.endswith("jpeg") or ct.endswith("jpg"): ext = ".jpg"
+        elif ct.endswith("webp"): ext = ".webp"
+        elif ct.endswith("png"): ext = ".png"
+
+        image_path = f"/static/plant-images/{espId}{ext}"
+        with open(PLANT_IMG_DIR / f"{espId}{ext}", "wb") as f:
             f.write(await plantImage.read())
     else:
-        image_path = "/static/plant-images/default.png"  # fallback image
+        image_path = DEFAULT_IMG_WEB
 
     # Create new plant
     new_plant = Plant(
