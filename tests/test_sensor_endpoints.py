@@ -52,7 +52,7 @@ def test_dashboard_with_data(client):
     response = client.get("/?esp_id=DASH123")
     html = response.text
     assert response.status_code == 200
-    assert "Plant Health Dashboard" in html
+    assert "Eclipse Dashboard" in html
     assert "DASH123" in html
     assert "22.2" in html
     assert "55.5" in html
