@@ -393,7 +393,6 @@ def dashboard(
 
     user = db.query(User).filter_by(username=username).first()
     esp_ids = [plant.esp_id for plant in user.plants]
-    plant = db.query(Plant).filter_by(esp_id=esp_id, user_id=user.id).first()
 
     # If no plants added, render empty state
     if not esp_ids:
@@ -401,6 +400,8 @@ def dashboard(
     
     if not esp_id:
         esp_id = esp_ids[0]
+
+    plant = db.query(Plant).filter_by(esp_id=esp_id, user_id=user.id).first()
 
     latest = (
         db.query(CurrentSensorData)
